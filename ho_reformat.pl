@@ -9,6 +9,9 @@
 #
 # This script uses a datafile: ~/.irssi/ho_reformat.data
 #
+# Tweaked by jilles <jilles-AT-stack.nl> to ignore server notices to channels
+# and @channels, non "*** Notice --" stuff and conditionally accept server
+# notices from other servers. (For charybdis).
 
 # TODO
 # - check hyb6/7 version using /quote version.
@@ -90,7 +93,8 @@ sub event_serverevent {
   my ($nickname, $username, $hostname);
 
   # If it is not a NOTICE, we don't want to have anything to do with it.
-  if ($msg !~ /^NOTICE/) {
+  # Don't mess with notices to channels or @/+ channel either -- jilles
+  if ($msg !~ /^NOTICE [^#&@+]/) {
     return;
   }
 
@@ -104,9 +108,10 @@ sub event_serverevent {
   # For a server notice, the source server is stored in $nick.
   # It can happen that a server notice from a different server is sent
   # to us. This notice must not be reformatted.
-  if ($nick ne $server->{real_address}) {
-    return;
-  }
+  # Skip this -- jilles
+  #if ($nick ne $server->{real_address}) {
+  #  return;
+  #}
 
   my $ownnick = $server->{'nick'};
 
@@ -116,7 +121,10 @@ sub event_serverevent {
 
   # Remove the server prefix
   # NOTE: this is probably unnecessary.
-  $msg =~ s/^$prefix//;
+  # Skip notices not starting with "*** Notice --" -- jilles
+  if (!($msg =~ s/^$prefix//)) {
+	return;
+  }
 
   # Check each notice reformatting regexp to see if this NOTICE matches
   for my $i ( 0 .. $#serverreplaces ) {
@@ -138,6 +146,13 @@ sub event_serverevent {
         Irssi::signal_stop();
         last;
       }
+
+	  if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
+	    unshift @vars, $nick;
+	  }
+	  elsif ($nick ne $server->{real_address}) {
+	    next;
+	  }
 
       # Get the target windows for this message
       my @windows = split(/ +/, $serverreplaces[$i][3]);
@@ -486,6 +501,8 @@ sub load_datafile {
       push @themeformats, $formatvalue;
     }
   }
+
+  close(F);
 
   Irssi::print("Processed $numreformats server notice reformats.",
   MSGLEVEL_CRAP); 
