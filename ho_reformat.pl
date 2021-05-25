@@ -1,3 +1,5 @@
+# vim: set tabstop=4
+#
 # ho_reformat.pl
 #
 # $Id: ho_reformat.pl,v 1.8 2003/02/25 19:49:45 jvunder Exp $
@@ -26,6 +28,7 @@
 #
 ###########################################################################
 
+use warnings;
 use strict;
 use vars qw($VERSION %IRSSI);
 
