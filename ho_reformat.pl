@@ -41,13 +41,13 @@ use Irssi::UI;
 
 ($VERSION) = '$Revision: 1.8 $' =~ / (\d+\.\d+) /;
 %IRSSI = (
-    authors	=> 'Garion',
-    contact	=> 'garion@efnet.nl',
-    name	=> 'ho_reformat',
-    description	=> 'Hybrid Oper Script Collection - server notice reformatting',
-    license	=> 'Public Domain',
-    url		=> 'http://www.garion.org/irssi/hosc.php',
-    changed	=> '18 January 2003 15:01:02',
+	authors	=> 'Garion',
+	contact	=> 'garion@efnet.nl',
+	name	=> 'ho_reformat',
+	description	=> 'Hybrid Oper Script Collection - server notice reformatting',
+	license	=> 'Public Domain',
+	url		=> 'http://www.garion.org/irssi/hosc.php',
+	changed	=> '18 January 2003 15:01:02',
 );
 
 # ======[ Credits ]=====================================================
@@ -87,135 +87,130 @@ my @themeformats;
 
 # --------[ event_serverevent ]-----------------------------------------
 
-# A Server Event has occurred. Check if it is a server NOTICE; 
+# A Server Event has occurred. Check if it is a server NOTICE;
 # if so, process it.
 
 sub event_serverevent {
-  my ($server, $msg, $nick, $hostmask) = @_;
-  my ($nickname, $username, $hostname);
+	my ($server, $msg, $nick, $hostmask) = @_;
+	my ($nickname, $username, $hostname);
 
-  # If it is not a NOTICE, we don't want to have anything to do with it.
-  # Don't mess with notices to channels or @/+ channel either -- jilles
-  if ($msg !~ /^NOTICE [^#&@+]/) {
-    return;
-  }
+	# If it is not a NOTICE, we don't want to have anything to do with it.
+	# Don't mess with notices to channels or @/+ channel either -- jilles
+	if ($msg !~ /^NOTICE [^#&@+]/) {
+		return;
+	}
 
-  # For a server notice, the hostmask is empty.
-  # If the hostmask is set, it is not a server NOTICE, so we'll ignore it
-  # as well.
-  return if $hostmask;
+	# For a server notice, the hostmask is empty.
+	# If the hostmask is set, it is not a server NOTICE, so we'll ignore it
+	# as well.
+	return if $hostmask;
 
-  # For a server notice, the source server is stored in $nick.
-  # It can happen that a server notice from a different server is sent
-  # to us. This notice must not be reformatted.
-  # Skip this -- jilles
-  #if ($nick ne $server->{real_address}) {
-  #  return;
-  #}
+	# For a server notice, the source server is stored in $nick.
+	# It can happen that a server notice from a different server is sent
+	# to us. This notice must not be reformatted.
+	# Skip this -- jilles
+	#if ($nick ne $server->{real_address}) {
+	#	return;
+	#}
 
-  # transform with a regexp the server name before printing it
-  # e.g. ^([^\.]+).+
-  my $rewrite_servername;
-  if (my $re = Irssi::settings_get_str('ho_rewrite_servername')) {
-    $rewrite_servername = qr/$re/;
-  }
+	# transform with a regexp the server name before printing it
+	# e.g. ^([^\.]+).+
+	my $rewrite_servername;
+	if (my $re = Irssi::settings_get_str('ho_rewrite_servername')) {
+		$rewrite_servername = qr/$re/;
+	}
 
-  my $ownnick = $server->{'nick'};
+	my $ownnick = $server->{'nick'};
 
-  # Remove the NOTICE part from the message
-  # NOTE: this is probably unnecessary.
-  $msg =~ s/^NOTICE \S+ ://;
+	# Remove the NOTICE part from the message
+	# NOTE: this is probably unnecessary.
+	$msg =~ s/^NOTICE \S+ ://;
 
-  # Remove the server prefix
-  # NOTE: this is probably unnecessary.
-  # Skip notices not starting with "*** Notice --" -- jilles
-  if (!($msg =~ s/^$prefix//)) {
-	return;
-  }
+	# Remove the server prefix
+	# NOTE: this is probably unnecessary.
+	# Skip notices not starting with "*** Notice --" -- jilles
+	if (!($msg =~ s/^$prefix//)) {
+		return;
+	}
 
-  # Check each notice reformatting regexp to see if this NOTICE matches
-  for my $i ( 0 .. $#serverreplaces ) {
-
-    # Check if the message matches this regexp.
-    if (my @vars = $msg =~ /$serverreplaces[$i][1]/) {
-
-      # If the replacement is only for a certain network, ignore it if
-	  # this is not that network.
-	  if ($serverreplaces[$i][3] =~ /^(\S+): /) {
-	    if (lc($server->{tag}) ne lc($1)) {
-		  next;
-		}
-	  }
-
-      # If the target window is or contains "devnull", the server notice
-      # will be discarded. Otherwise, process it.
-      if ($serverreplaces[$i][3] =~ /devnull/) {
-        Irssi::signal_stop();
-        last;
-      }
-
-	  if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
-	    $nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
-	    unshift @vars, $nick;
-	  }
-	  elsif ($nick ne $server->{real_address}) {
-	    next;
-	  }
-
-      # Get the target windows for this message
-      my @windows = split(/ +/, $serverreplaces[$i][3]);
-
-      # Send the reformatted message to each window
-      foreach my $win(@windows) {
-	    # Ugly hack for sort of multi network support.
-		# This must be changed.
-	    next if ($win =~ /:$/);
-		
-        # Get the target window for this message
-        # Use the active window if it's "active"
-	    my $targetwin;
-	    if ($win eq "active") {
-	      $targetwin = Irssi::active_win();
-	    } else {
-		  if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
-	        $targetwin = get_window_by_name(lc($server->{tag}) . "_" . $win);
-			if (!$targetwin) {
-	          $targetwin = get_window_by_name($win);
+	# Check each notice reformatting regexp to see if this NOTICE matches
+	for my $i (0 .. $#serverreplaces) {
+		# Check if the message matches this regexp.
+		if (my @vars = $msg =~ /$serverreplaces[$i][1]/) {
+			# If the replacement is only for a certain network, ignore it if
+			# this is not that network.
+			if ($serverreplaces[$i][3] =~ /^(\S+): /) {
+				if (lc($server->{tag}) ne lc($1)) {
+				next;
+				}
 			}
-		  } else {
-	        $targetwin = get_window_by_name($win);
-		  }
-	    }
 
-        # Get the tag of this server
-        my $servertag = $server->{'tag'};
+			# If the target window is or contains "devnull", the server notice
+			# will be discarded. Otherwise, process it.
+			if ($serverreplaces[$i][3] =~ /devnull/) {
+				Irssi::signal_stop();
+				last;
+			}
 
-        # Send the reformatted message to the window
-		# But only if the target is not "<otherservertag>: win1 win2"
-        my $msglevel = get_msglevel($serverreplaces[$i][4]);
-		if ($serverreplaces[$i][3] =~ /^(\S+): /) {
-		  if (lc($1) eq lc($server->{tag})) {
-            $targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
-                                $servertag, @vars);
-		  } else {
-		    #Irssi::print("blah [" . $serverreplaces[$i][3] . "][$1][".$server->{tag}
-		  }
-		} else {
-          $targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
-                                $servertag, @vars);
+			if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
+				$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
+				unshift @vars, $nick;
+			} elsif ($nick ne $server->{real_address}) {
+				next;
+			}
+
+			# Get the target windows for this message
+			my @windows = split(/ +/, $serverreplaces[$i][3]);
+
+			# Send the reformatted message to each window
+			foreach my $win(@windows) {
+				# Ugly hack for sort of multi network support.
+				# This must be changed.
+				next if ($win =~ /:$/);
+
+				# Get the target window for this message
+				# Use the active window if it's "active"
+				my $targetwin;
+				if ($win eq "active") {
+					$targetwin = Irssi::active_win();
+				} else {
+					if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
+						$targetwin = get_window_by_name(lc($server->{tag}) . "_" . $win);
+						if (!$targetwin) {
+							$targetwin = get_window_by_name($win);
+						}
+					} else {
+						$targetwin = get_window_by_name($win);
+					}
+				}
+
+				# Get the tag of this server
+				my $servertag = $server->{'tag'};
+
+				# Send the reformatted message to the window
+				# But only if the target is not "<otherservertag>: win1 win2"
+				my $msglevel = get_msglevel($serverreplaces[$i][4]);
+				if ($serverreplaces[$i][3] =~ /^(\S+): /) {
+					if (lc($1) eq lc($server->{tag})) {
+						$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
+						$servertag, @vars);
+					}
+				} else {
+					$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
+						$servertag, @vars);
+				}
+			}
+
+			# Stop the signal
+			Irssi::signal_stop();
+
+			# Stop matching regexps if continuematching == 0
+			# More ugly hack shit. Needs to be done decently.
+			if ($serverreplaces[$i][5] !~ /continuematch/) {
+				last;
+			}
 		}
-      }
-
-      # Stop the signal
-      Irssi::signal_stop();
-
-      # Stop matching regexps if continuematching == 0
-	  # More ugly hack shit. Needs to be done decently.
-      if ($serverreplaces[$i][5] !~ /continuematch/) {
-        last;
-      }
-    }
-  }
+	}
 }
 
 
@@ -225,20 +220,20 @@ sub event_serverevent {
 # Returns the window object given in the setting ho_win_$name.
 
 sub get_window_by_name {
-  my ($name) = @_;
+	my ($name) = @_;
 
-  # Get the reference to the window from irssi
-  my $win = Irssi::window_find_name($name);
+	# Get the reference to the window from irssi
+	my $win = Irssi::window_find_name($name);
 
-  # If not found, get the reference to window 1
-  # I'm hoping that this does ALWAYS exist :)
-  # But if not... how can this be improved so to ALWAYS return a valid
-  # window reference?
-  if (!defined($win)) {
-    $win = Irssi::window_find_refnum(1);
-  }
+	# If not found, get the reference to window 1
+	# I'm hoping that this does ALWAYS exist :)
+	# But if not... how can this be improved so to ALWAYS return a valid
+	# window reference?
+	if (!defined($win)) {
+		$win = Irssi::window_find_refnum(1);
+	}
 
-  return $win;
+	return $win;
 }
 
 # --------[ get_msglevel ]----------------------------------------------
@@ -257,7 +252,7 @@ sub get_msglevel {
 	return MSGLEVEL_PUBLIC						if $name eq 'MSG';
 	return MSGLEVEL_PUBLIC | MSGLEVEL_NO_ACT	if $name eq 'NONE';
 	return MSGLEVEL_CLIENTCRAP;
-} 
+}
 
 # ======[ Initialization ]==============================================
 
@@ -299,84 +294,81 @@ sub add_event {
 # Downloads and saves a datafile.
 
 sub download_datafile {
-  my ($datafile) = @_;
+	my ($datafile) = @_;
 
 	if (not $datafile_mirror) {
 		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found and no source defined!");
 		return;
 	}
 
-  eval { require LWP::UserAgent; };
+	eval { require LWP::UserAgent; };
 
-  if ($@) {
-  	Irssi::print("Datafile ~/.irssi/ho_reformat.data not found. Please download one.");
+	if ($@) {
+		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found. Please download one.");
 	return;
-  }
+	}
 
-  import LWP::UserAgent;
-  Irssi::print(
-  "Datafile not found. Trying to download one from $datafile_mirror",
-  MSGLEVEL_CRAP);
+	import LWP::UserAgent;
+	Irssi::print(
+	"Datafile not found. Trying to download one from $datafile_mirror",
+	MSGLEVEL_CRAP);
 
-  # The download source is inspired from scriptassist.pl so tommie is to
-  # blame for it :) -zap
+	my $useragent = LWP::UserAgent->new(env_proxy => 1,keep_alive => 1,timeout => 30);
+	$useragent->agent('HybridOper/'.$VERSION);
+	my $request = HTTP::Request->new('GET', $datafile_mirror.'ho_reformat.data.hybrid7');
 
-  my $useragent = LWP::UserAgent->new(env_proxy => 1,keep_alive => 1,timeout => 30);
-  $useragent->agent('HybridOper/'.$VERSION);
-  my $request = HTTP::Request->new('GET', $datafile_mirror.'ho_reformat.data.hybrid7');
-
-  my $response = $useragent->request($request);
-  if ($response->is_success()) {
-    my $file = $response->content();
-    local *F;
-    open(F, '>' . $datafile);
-    print F $file;
-    close(F);
-    Irssi::print("Default datafile successfully fetched and stored in $datafile.", MSGLEVEL_CRAP);
-  } else {
-    Irssi::print(
-    "Unable to fetch default datafile from $datafile_mirror.\n".
-    "Go find one for your own. http://www.garion.org/irssi/hosc.php ".
-    "may be a good start.",
-    MSGLEVEL_CRAP);
-  }
+	my $response = $useragent->request($request);
+	if ($response->is_success()) {
+		my $file = $response->content();
+		local *F;
+		open(F, '>' . $datafile);
+		print F $file;
+		close(F);
+		Irssi::print("Default datafile successfully fetched and stored in $datafile.", MSGLEVEL_CRAP);
+	} else {
+		Irssi::print(
+		"Unable to fetch default datafile from $datafile_mirror.\n".
+		"Go find one for your own. http://www.garion.org/irssi/hosc.php ".
+		"may be a good start.",
+		MSGLEVEL_CRAP);
+	}
 }
 
 # --------[ get_all_windownames ]---------------------------------------
 # Looks through all registered reformattings and checks which target
-# windows are used. Ignores the windows named "active" and "devnull", 
+# windows are used. Ignores the windows named "active" and "devnull",
 # because these are special windows. Returns the windows, in an array.
 
 sub get_all_windownames {
-  # Temporary hash to obtain all the window names
-  my %tmp;
+	# Temporary hash to obtain all the window names
+	my %tmp;
 
-  # Set $tmp{windowname} = 1 for each different window name.
-  # Then, the @keys of the hash contains an array of all the window
-  # names.
-  for my $i ( 0 .. $#serverreplaces ) {
-    my $winnamestring = $serverreplaces[$i][3];
+	# Set $tmp{windowname} = 1 for each different window name.
+	# Then, the @keys of the hash contains an array of all the window
+	# names.
+	for my $i (0 .. $#serverreplaces) {
+		my $winnamestring = $serverreplaces[$i][3];
 
-    # Each window name string can consist of multiple window names,
-    # space separated.
-    my @windownames = split(/ +/, $winnamestring);
+		# Each window name string can consist of multiple window names,
+		# space separated.
+		my @windownames = split(/ +/, $winnamestring);
 
-    # Set the tmp hash value to 1 using each window name as key.
-    foreach my $windowname (@windownames) {
-      $windowname =~ s/^ +//;
-      $windowname =~ s/ +$//;
+		# Set the tmp hash value to 1 using each window name as key.
+		foreach my $windowname (@windownames) {
+			$windowname =~ s/^ +//;
+			$windowname =~ s/ +$//;
 
-      # Don't add "active" or "devnull"
-      if ($windowname ne "active" && $windowname ne "devnull") {
-        $tmp{$windowname} = 1;
-      }
-    }
-  }
+			# Don't add "active" or "devnull"
+			if ($windowname ne "active" && $windowname ne "devnull") {
+				$tmp{$windowname} = 1;
+			}
+		}
+	}
 
-  # Get the array of window names.
-  my @windownames = keys(%tmp);
+	# Get the array of window names.
+	my @windownames = keys(%tmp);
 
-  return @windownames;
+	return @windownames;
 }
 
 # --------[ get_missing_windownames ]-----------------------------------
@@ -384,18 +376,18 @@ sub get_all_windownames {
 # present in the irssi client.
 
 sub get_missing_windownames {
-  my @windownames = get_all_windownames();
-  my @winnotfound = ();
+	my @windownames = get_all_windownames();
+	my @winnotfound = ();
 
-  # Put the not found windows in an array.
-  foreach my $windowname (@windownames) {
-    my $win = Irssi::window_find_name($windowname);
-    if (!defined($win)) {
-      push(@winnotfound, $windowname);
-    }
-  }
-  
-  return @winnotfound;
+	# Put the not found windows in an array.
+	foreach my $windowname (@windownames) {
+		my $win = Irssi::window_find_name($windowname);
+		if (!defined($win)) {
+			push(@winnotfound, $windowname);
+		}
+	}
+
+	return @winnotfound;
 }
 
 # --------[ check_windows ]---------------------------------------------
@@ -403,25 +395,25 @@ sub get_missing_windownames {
 # exist and gives a warning for each missing window.
 
 sub check_windows {
-  if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
-    Irssi::print("Using multi-network settings in reformat. Prepend ".
+	if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
+		Irssi::print("Using multi-network settings in reformat. Prepend ".
 		"your window names with the network tag followed by an ".
 		"underscore, for example efnet_conn.", MSGLEVEL_CRAP);
 	return;
-  }
-  my @windownames = get_all_windownames();
-  my @winnotfound = get_missing_windownames();
+	}
+	my @windownames = get_all_windownames();
+	my @winnotfound = get_missing_windownames();
 
-  # Print a warning if there are any missing windows.
-  if (@winnotfound > 0) {
-    my $plural = "";
-    if (@winnotfound > 1) { $plural = "s"; }
-    Irssi::print("%RWarning%n: you are missing the window" . $plural .
-    " named %c@winnotfound%n. Use /WIN NAME <name> to name windows and ".
-    "/REFORMAT INTRO to find out why they are needed.", MSGLEVEL_CRAP);
-  } 
-  
-  Irssi::print("Using output windows %c@windownames%n.", MSGLEVEL_CRAP);
+	# Print a warning if there are any missing windows.
+	if (@winnotfound > 0) {
+		my $plural = "";
+		if (@winnotfound > 1) { $plural = "s"; }
+		Irssi::print("%RWarning%n: you are missing the window" . $plural .
+		" named %c@winnotfound%n. Use /WIN NAME <name> to name windows and ".
+		"/REFORMAT INTRO to find out why they are needed.", MSGLEVEL_CRAP);
+	}
+
+	Irssi::print("Using output windows %c@windownames%n.", MSGLEVEL_CRAP);
 }
 
 # --------[ load_datafile ]---------------------------------------------
@@ -429,87 +421,87 @@ sub check_windows {
 # reformatting data from the file.
 
 sub load_datafile {
-  my ($file) = @_;
-  Irssi::print("Loading $file.", MSGLEVEL_CRAP);
+	my ($file) = @_;
+	Irssi::print("Loading $file.", MSGLEVEL_CRAP);
 
-  my $prepend_servertag = Irssi::settings_get_bool('ho_prepend_servertag');
+	my $prepend_servertag = Irssi::settings_get_bool('ho_prepend_servertag');
 
-  my $linenum = 0;
-  my $numreformats = 0;
-  open(F, "<$file");
+	my $linenum = 0;
+	my $numreformats = 0;
+	open(F, "<$file");
 
-  while (my $line = <F>) {
-    $linenum++;
-    chop($line);
+	while (my $line = <F>) {
+		$linenum++;
+		chop($line);
 
-    # Remove spaces at the end
-    $line =~ s/\s+$//;
+		# Remove spaces at the end
+		$line =~ s/\s+$//;
 
-    # Ignore comments and empty lines
-    if ($line =~ /^#/ || $line =~ /^\s+$/ || length($line) == 0) {
-      # comment, ignoring
-    } else {
-      $numreformats++;
+		# Ignore comments and empty lines
+		if ($line =~ /^#/ || $line =~ /^\s+$/ || length($line) == 0) {
+			# comment, ignoring
+		} else {
+			$numreformats++;
 
-      # First line is <name> [option1] [option2] [..]
-      my $name = $line;
-      my $options = "";
-      if ($name =~ /([^ ]+) +([^ ]+)/) {
-        $name = $1;
-	$options = $2;
-      }
+			# First line is <name> [option1] [option2] [..]
+			my $name = $line;
+			my $options = "";
+			if ($name =~ /([^ ]+) +([^ ]+)/) {
+				$name = $1;
+				$options = $2;
+			}
 
-      # Second line is <regexp>
-      my $regexp = <F>; chop($regexp);
+			# Second line is <regexp>
+			my $regexp = <F>; chop($regexp);
 
-      # Third line is <format>
-      my $format = <F>; chop($format);
-      $format =~ s/^\[\$0\] // if not $prepend_servertag;
+			# Third line is <format>
+			my $format = <F>; chop($format);
+			$format =~ s/^\[\$0\] // if not $prepend_servertag;
 
-      # Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
-      my $winnames = <F>; chop($winnames);
-      $winnames =~ s/ +/ /;
-      my $msglevel = "CLIENTCRAP";
-      
-      # Set msglevel to MSG if "MSG" is present in this line.
-      if ($winnames =~ /MSG/) {
-        $winnames =~ s/MSG//;
-        $msglevel = "MSG";
-      }
-      
-      # Set msglevel to HILIGHT if "HILIGHT" is present in this line.
-      if ($winnames =~ /HILIGHT/) {
-        $winnames =~ s/HILIGHT//;
-        $msglevel = "HILIGHT";
-      }
+			# Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
+			my $winnames = <F>; chop($winnames);
+			$winnames =~ s/ +/ /;
+			my $msglevel = "CLIENTCRAP";
 
-      # Set msglevel to NONE if "NONE" is present in this line.
-      if ($winnames =~ /NONE/) {
-        $winnames =~ s/NONE//;
-        $msglevel = "NONE";
-      }
+			# Set msglevel to MSG if "MSG" is present in this line.
+			if ($winnames =~ /MSG/) {
+				$winnames =~ s/MSG//;
+				$msglevel = "MSG";
+			}
 
-      # Remove spaces from begin and end.
-      $winnames =~ s/^ +//;
-      $winnames =~ s/ +$//;
+			# Set msglevel to HILIGHT if "HILIGHT" is present in this line.
+			if ($winnames =~ /HILIGHT/) {
+				$winnames =~ s/HILIGHT//;
+				$msglevel = "HILIGHT";
+			}
 
-      # Add this reformatting to the reformat data structure.
-      add_event($linenum, $name, $regexp, $format, 
-                $winnames, $msglevel, $options);
+			# Set msglevel to NONE if "NONE" is present in this line.
+			if ($winnames =~ /NONE/) {
+				$winnames =~ s/NONE//;
+				$msglevel = "NONE";
+			}
 
-      # Add the formats to an array which will be passed to theme_register
-      # The format is prepended with "ho_r_"; this is to make sure there
-      # are no name clashes with other ho_ formats.
-      my $formatname = "ho_r_" . $name;
-      my $formatvalue = '{line_start}' . $format;
-      push(@themeformats, $formatname => $formatvalue);
-    }
-  }
+			# Remove spaces from begin and end.
+			$winnames =~ s/^ +//;
+			$winnames =~ s/ +$//;
 
-  close(F);
+			# Add this reformatting to the reformat data structure.
+			add_event($linenum, $name, $regexp, $format,
+				$winnames, $msglevel, $options);
 
-  Irssi::print("Processed $numreformats server notice reformats.",
-  MSGLEVEL_CRAP); 
+			# Add the formats to an array which will be passed to theme_register
+			# The format is prepended with "ho_r_"; this is to make sure there
+			# are no name clashes with other ho_ formats.
+			my $formatname = "ho_r_" . $name;
+			my $formatvalue = '{line_start}' . $format;
+			push(@themeformats, $formatname => $formatvalue);
+		}
+	}
+
+	close(F);
+
+	Irssi::print("Processed $numreformats server notice reformats.",
+	MSGLEVEL_CRAP);
 }
 
 # --------[ cmd_reformat ]----------------------------------------------
@@ -517,13 +509,13 @@ sub load_datafile {
 # Shows a list of available subcommands.
 
 sub cmd_reformat {
-  my ($data, $server, $item) = @_;
-  if ($data =~ m/^[(help)|(list)|(intro)|(create)]/i ) {
-    Irssi::command_runsub ('reformat', $data, $server, $item);
-  }
-  else {
-    Irssi::print("Use /reformat (help|list|intro|create|inject).")
-  }
+	my ($data, $server, $item) = @_;
+	if ($data =~ m/^[(help)|(list)|(intro)|(create)]/i ) {
+		Irssi::command_runsub ('reformat', $data, $server, $item);
+	}
+	else {
+		Irssi::print("Use /reformat (help|list|intro|create|inject).")
+	}
 }
 
 # --------[ cmd_reformat_list ]------------------------------------------
@@ -533,39 +525,39 @@ sub cmd_reformat {
 # window named $data.
 
 sub cmd_reformat_list {
-  my ($data, $server, $item) = @_;
+	my ($data, $server, $item) = @_;
 
-  if (length($data) > 0) { 
-    Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-    "Active server notice reformattings to window $data:");
-  } else {
-    Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-    'Active server notice reformattings:');
-  }
+	if (length($data) > 0) {
+		Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
+		"Active server notice reformattings to window $data:");
+	} else {
+		Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
+		'Active server notice reformattings:');
+	}
 
-  my $numreformats = 0;
-  for my $i ( 0 .. $#serverreplaces ) {
-    my $aref = $serverreplaces[$i];
-    my $n = @$aref - 1;
+	my $numreformats = 0;
+	for my $i ( 0 .. $#serverreplaces ) {
+		my $aref = $serverreplaces[$i];
+		my $n = @$aref - 1;
 
-    my $name = $serverreplaces[$i][0];
-    my $winname = $serverreplaces[$i][3];
+		my $name = $serverreplaces[$i][0];
+		my $winname = $serverreplaces[$i][3];
 
-    # If there is an argument, assume it's a window name and print only 
-    # the reformattings to that window name.
-    if (length($data) > 0) { 
-      if ($data eq $winname) {
-        Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap', $name);
-        $numreformats++;
-      }
-    } else {
-      Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-      "$name -> $winname.");
-      $numreformats++;
-    }
-  }
-  Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-  "Total: $numreformats.");
+		# If there is an argument, assume it's a window name and print only
+		# the reformattings to that window name.
+		if (length($data) > 0) {
+			if ($data eq $winname) {
+				Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap', $name);
+				$numreformats++;
+			}
+		} else {
+			Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
+			"$name -> $winname.");
+			$numreformats++;
+		}
+	}
+	Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
+	"Total: $numreformats.");
 }
 
 # --------[ cmd_reformat_help ]-----------------------------------------
@@ -573,13 +565,13 @@ sub cmd_reformat_list {
 # Shows a short help text.
 
 sub cmd_reformat_help {
-  my ($data, $server, $item) = @_;
+	my ($data, $server, $item) = @_;
 
-  if ($data eq "intro") {
-    return cmd_reformat_intro($data, $server, $item);
-  }
+	if ($data eq "intro") {
+		return cmd_reformat_intro($data, $server, $item);
+	}
 
-  Irssi::print(
+	Irssi::print(
 "%CHybrid Oper Script Collection%n.\n".
 "%GServer notice reformatting script%n.\n".
 "This script is meant to make life easier for opers on a hybrid network, ".
@@ -597,14 +589,14 @@ sub cmd_reformat_help {
 'text is prepended with %_NOTICE $nick :%_ to make it trigger the script.'.
 "", MSGLEVEL_CLIENTCRAP);
 }
-  
+
 # --------[ cmd_reformat_intro ]----------------------------------------
 # /reformat intro
 # This function prints an introduction to the reformat script.
 
 sub cmd_reformat_intro {
-  my ($data, $server, $item) = @_;
-  Irssi::print(
+	my ($data, $server, $item) = @_;
+	Irssi::print(
 "%CHybrid Oper Script Collection%n.\n".
 "%GServer notice reformatting script%n - an introduction.\n".
 
@@ -642,45 +634,45 @@ sub cmd_reformat_intro {
 # ones.
 
 sub cmd_reformat_create {
-  my ($data, $server, $item) = @_;
-  my @missingwindows = get_missing_windownames();
-  if (@missingwindows == 0) {
-    Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-    "All necessary windows are present. Not creating any extra.");
-  } else {
-    my @winnums;
-    Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-    "Creating the missing windows: @missingwindows.");
-    foreach my $missingwindow (@missingwindows) {
-      my $win = Irssi::Windowitem::window_create($missingwindow, 1);
-      $win->change_server($server);
-      $win->set_name($missingwindow);
-      push @winnums, $win->{'refnum'};
-      $win->printformat(MSGLEVEL_PUBLIC, "ho_crap",
-      "Created $missingwindow.");
-    }
-    Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-    "Created the missing windows in: @winnums.");
-  }
+	my ($data, $server, $item) = @_;
+	my @missingwindows = get_missing_windownames();
+	if (@missingwindows == 0) {
+		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
+		"All necessary windows are present. Not creating any extra.");
+	} else {
+		my @winnums;
+		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
+		"Creating the missing windows: @missingwindows.");
+		foreach my $missingwindow (@missingwindows) {
+			my $win = Irssi::Windowitem::window_create($missingwindow, 1);
+			$win->change_server($server);
+			$win->set_name($missingwindow);
+			push @winnums, $win->{'refnum'};
+			$win->printformat(MSGLEVEL_PUBLIC, "ho_crap",
+			"Created $missingwindow.");
+		}
+		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
+		"Created the missing windows in: @winnums.");
+	}
 }
 
 # --------[ cmd_reformat_inject ]---------------------------------------
 # /reformat inject [message]
-# Fakes a server notice for testing. This command prepends 
+# Fakes a server notice for testing. This command prepends
 # "NOTICE $nick :" to the given text.
 
 sub cmd_reformat_inject {
-  my ($data, $server, $item) = @_;
+	my ($data, $server, $item) = @_;
 
-  if (length($data) == 0) {
-    Irssi::print("Injects a server notice. Mostly used for testing purposes. ".
-    "Use /REFORMAT INJECT [notice].");
-    return;
-  }
+	if (length($data) == 0) {
+		Irssi::print("Injects a server notice. Mostly used for testing purposes. ".
+		"Use /REFORMAT INJECT [notice].");
+		return;
+	}
 
-  Irssi::print("Faking a server notice ($data)");
-  my $nick = $server->{'nick'};
-  event_serverevent($server, "NOTICE $nick :$data", $server->{real_address}, '');
+	Irssi::print("Faking a server notice ($data)");
+	my $nick = $server->{'nick'};
+	event_serverevent($server, "NOTICE $nick :$data", $server->{real_address}, '');
 }
 
 # ======[ Setup ]=======================================================
@@ -713,15 +705,15 @@ add_formats_to_themearray();
 
 # If the datafile doesn't exist, download it.
 if (! -f "$datadir/$datafile") {
-  download_datafile("$datadir/$datafile");
+	download_datafile("$datadir/$datafile");
 }
 
 # If the datafile exists, load it.
 if (! -f "$datadir/$datafile") {
-  Irssi::print("Could not load datafile. No reformattings loaded.",
-  MSGLEVEL_CRAP);
+	Irssi::print("Could not load datafile. No reformattings loaded.",
+		MSGLEVEL_CRAP);
 } else {
-  load_datafile("$datadir/$datafile");
+	load_datafile("$datadir/$datafile");
 }
 
 # Register all ho formats
@@ -730,7 +722,7 @@ Irssi::theme_register(\@themeformats);
 # Check if all the named windows are present.
 check_windows();
 
-Irssi::print("Use %_/REFORMAT HELP%_ for help and %_/REFORMAT INTRO%_ for an introduction.", 
+Irssi::print("Use %_/REFORMAT HELP%_ for help and %_/REFORMAT INTRO%_ for an introduction.",
 MSGLEVEL_CRAP);
 
 Irssi::print("%GServer Notice Reformatting%n script loaded.", MSGLEVEL_CRAP);
