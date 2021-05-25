@@ -15,7 +15,6 @@
 
 # TODO
 # - check hyb6/7 version using /quote version.
-# - /set ho_prepend_servertag ON|OFF
 # - /set ho_log_raw_servermsg ON|OFF
 #
 
@@ -430,6 +429,8 @@ sub load_datafile {
   my ($file) = @_;
   Irssi::print("Loading $file.", MSGLEVEL_CRAP);
 
+  my $prepend_servertag = Irssi::settings_get_bool('ho_prepend_servertag');
+
   my $linenum = 0;
   my $numreformats = 0;
   open(F, "<$file");
@@ -460,6 +461,7 @@ sub load_datafile {
 
       # Third line is <format>
       my $format = <F>; chop($format);
+      $format =~ s/^\[\$0\] // if not $prepend_servertag;
 
       # Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
       my $winnames = <F>; chop($winnames);
@@ -697,6 +699,7 @@ Irssi::command_bind('reformat inject', 'cmd_reformat_inject');
 # --------[ Register settings ]-----------------------------------------
 
 Irssi::settings_add_bool("ho", "ho_reformat_multinetwork", 0);
+Irssi::settings_add_bool('ho', 'ho_prepend_servertag', 0);
 
 # --------[ Intialization ]---------------------------------------------
 
