@@ -112,6 +112,13 @@ sub event_serverevent {
   #  return;
   #}
 
+  # transform with a regexp the server name before printing it
+  # e.g. ^([^\.]+).+
+  my $rewrite_servername;
+  if (my $re = Irssi::settings_get_str('ho_rewrite_servername')) {
+    $rewrite_servername = qr/$re/;
+  }
+
   my $ownnick = $server->{'nick'};
 
   # Remove the NOTICE part from the message
@@ -147,6 +154,7 @@ sub event_serverevent {
       }
 
 	  if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
+	    $nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
 	    unshift @vars, $nick;
 	  }
 	  elsif ($nick ne $server->{real_address}) {
@@ -705,6 +713,7 @@ Irssi::command_bind('reformat inject', 'cmd_reformat_inject');
 
 Irssi::settings_add_bool("ho", "ho_reformat_multinetwork", 0);
 Irssi::settings_add_bool('ho', 'ho_prepend_servertag', 0);
+Irssi::settings_add_str("ho", "ho_rewrite_servername", '');
 
 # --------[ Intialization ]---------------------------------------------
 
