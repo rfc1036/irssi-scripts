@@ -292,18 +292,19 @@ sub add_formats_to_themearray {
 # Adds one server notice reformatting.
 
 sub add_event {
-  my ($linenum, $name, $regexp, $format, 
-      $winnames, $msglevel, $options) = @_;
+	my $linenum = shift;
 
-  # Test if the regular expression is valid
-  eval { /$regexp/ } ;
-  if ($@) {
-    Irssi::print(MSGLEVEL_CLIENTCRAP,
-    "Error in regexp on line " . ($linenum) . ".");
-  } else {
-    push @serverreplaces, [ ($name, $regexp, $format, 
-                             $winnames, $msglevel, $options) ];
-  }
+	# Test if the regular expression is valid
+	eval { /$_[1]/ };
+	if ($@) {
+		$linenum++;
+		$@ =~ s/ at \S+ line .+?\n$//;
+		Irssi::print("Invalid regexp on line $linenum of the data file: $@",
+			MSGLEVEL_CLIENTCRAP);
+		return;
+	}
+	push(@serverreplaces, \@_);
+	return;
 }
 
 # --------[ download_datafile ] ----------------------------------------
