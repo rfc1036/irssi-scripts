@@ -502,8 +502,7 @@ sub load_datafile {
       # are no name clashes with other ho_ formats.
       my $formatname = "ho_r_" . $name;
       my $formatvalue = '{line_start}' . $format;
-      push @themeformats, $formatname;
-      push @themeformats, $formatvalue;
+      push(@themeformats, $formatname => $formatvalue);
     }
   }
 
@@ -726,7 +725,7 @@ if (! -f "$datadir/$datafile") {
 }
 
 # Register all ho formats
-Irssi::theme_register( [ @themeformats ] );
+Irssi::theme_register(\@themeformats);
 
 # Check if all the named windows are present.
 check_windows();
