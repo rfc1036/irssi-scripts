@@ -71,7 +71,7 @@ my $datafile = "ho_reformat.data";
 
 # Mirror for a default datafile to be downloaded when the script isn't
 # able to find one.
-my $datafile_mirror = "http://www.garion.org/irssi/";
+my $datafile_mirror;
 
 # Array of server notice reformatting data.
 my @serverreplaces;
@@ -302,6 +302,11 @@ sub add_event {
 
 sub download_datafile {
   my ($datafile) = @_;
+
+	if (not $datafile_mirror) {
+		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found and no source defined!");
+		return;
+	}
 
   eval { require LWP::UserAgent; };
 
