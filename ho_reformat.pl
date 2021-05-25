@@ -251,21 +251,12 @@ sub get_window_by_name {
 # Other          -> return MSGLEVEL_CLIENTCRAP
 
 sub get_msglevel {
-  my ($name) = @_;
+	my ($name) = @_;
 
-  if ($name eq "HILIGHT") {
-    return MSGLEVEL_PUBLIC | MSGLEVEL_HILIGHT;
-  }
-
-  if ($name eq "MSG") {
-    return MSGLEVEL_PUBLIC;
-  }
-
-  if ($name eq "NONE") {
-    return MSGLEVEL_PUBLIC | MSGLEVEL_NO_ACT;
-  }
-
-  return MSGLEVEL_CLIENTCRAP;
+	return MSGLEVEL_PUBLIC | MSGLEVEL_HILIGHT	if $name eq 'HILIGHT';
+	return MSGLEVEL_PUBLIC						if $name eq 'MSG';
+	return MSGLEVEL_PUBLIC | MSGLEVEL_NO_ACT	if $name eq 'NONE';
+	return MSGLEVEL_CLIENTCRAP;
 } 
 
 # ======[ Initialization ]==============================================
@@ -274,17 +265,14 @@ sub get_msglevel {
 # This function stores the basic ho theme formats in @themeformats.
 
 sub add_formats_to_themearray {
-  # Later on, we can add abstracts here, using
-  # Irssi::abstracts_register([key => value, ...]);
-  # This, however, requires "use Irssi 20021228.1525;".
-  
-  push @themeformats, (
-    'ho_crap',
-    '{line_start}%Cho:%n $0',
+	# Later on, we can add abstracts here, using
+	# Irssi::abstracts_register([key => value, ...]);
+	# This, however, requires "use Irssi 20021228.1525;".
 
-    'ho_warning',
-    '{line_start}%Cho:%n %RWarning%n $0',
-  );
+	push(@themeformats, (
+		ho_crap		=> '{line_start}%Cho:%n $0',
+		ho_warning	=> '{line_start}%Cho:%n %RWarning%n $0',
+	));
 }
 
 
