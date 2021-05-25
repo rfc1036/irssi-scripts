@@ -103,9 +103,7 @@ sub event_serverevent {
   # For a server notice, the hostmask is empty.
   # If the hostmask is set, it is not a server NOTICE, so we'll ignore it
   # as well.
-  if (length($hostmask) > 0) {
-    return;
-  }
+  return if $hostmask;
 
   # For a server notice, the source server is stored in $nick.
   # It can happen that a server notice from a different server is sent
