@@ -166,26 +166,20 @@ sub event_serverevent {
 			foreach my $win(@windows) {
 				# Ugly hack for sort of multi network support.
 				# This must be changed.
-				next if ($win =~ /:$/);
+				next if $win =~ /:$/;
 
 				# Get the target window for this message
 				# Use the active window if it's "active"
 				my $targetwin;
 				if ($win eq "active") {
 					$targetwin = Irssi::active_win();
+				} elsif (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
+					$targetwin =
+						get_window_by_name(lc($server->{tag}) . "_" . $win) ||
+						get_window_by_name($win);
 				} else {
-					if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
-						$targetwin = get_window_by_name(lc($server->{tag}) . "_" . $win);
-						if (!$targetwin) {
-							$targetwin = get_window_by_name($win);
-						}
-					} else {
-						$targetwin = get_window_by_name($win);
-					}
+					$targetwin = get_window_by_name($win);
 				}
-
-				# Get the tag of this server
-				my $servertag = $server->{'tag'};
 
 				# Send the reformatted message to the window
 				# But only if the target is not "<otherservertag>: win1 win2"
@@ -193,11 +187,11 @@ sub event_serverevent {
 				if ($serverreplaces[$i][3] =~ /^(\S+): /) {
 					if (lc($1) eq lc($server->{tag})) {
 						$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
-						$servertag, @vars);
+						$server->{tag}, @vars);
 					}
 				} else {
 					$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
-						$servertag, @vars);
+						$server->{tag}, @vars);
 				}
 			}
 
