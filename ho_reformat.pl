@@ -275,21 +275,21 @@ sub download_datafile {
 
 	my $datafile_mirror = Irssi::settings_get_str('ho_rewrite_datafile_url');
 	if (not $datafile_mirror) {
-		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found and no source defined!");
+		Irssi::print("Data file $datafile not found: Install one or use:"
+			. " /set ho_rewrite_datafile_url URL", MSGLEVEL_CLIENTNOTICE);
 		return;
 	}
 
 	eval { require LWP::UserAgent; };
 
 	if ($@) {
-		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found. Please download one.");
-	return;
+		Irssi::print($@, MSGLEVEL_CLIENTERROR);
+		return;
 	}
 
 	import LWP::UserAgent;
-	Irssi::print(
-	"Datafile not found. Trying to download one from $datafile_mirror",
-	MSGLEVEL_CRAP);
+	Irssi::print("Data file not found. Trying to download one from"
+		. " $datafile_mirror", MSGLEVEL_CLIENTCRAP);
 
 	my $useragent = LWP::UserAgent->new(env_proxy => 1,keep_alive => 1,timeout => 30);
 	$useragent->agent('HybridOper/'.$VERSION);
@@ -302,13 +302,11 @@ sub download_datafile {
 		open(F, '>' . $datafile);
 		print F $file;
 		close(F);
-		Irssi::print("Default datafile successfully fetched and stored in $datafile.", MSGLEVEL_CRAP);
+		Irssi::print("Default data file successfully fetched and stored"
+			. " in $datafile.", MSGLEVEL_CLIENTCRAP);
 	} else {
-		Irssi::print(
-		"Unable to fetch default datafile from $datafile_mirror.\n".
-		"Go find one for your own. http://www.garion.org/irssi/hosc.php ".
-		"may be a good start.",
-		MSGLEVEL_CRAP);
+		Irssi::print("Unable to download the data file from $datafile_mirror: "
+			. $response->status_line, MSGLEVEL_CLIENTERROR);
 	}
 }
 
@@ -600,9 +598,6 @@ sub cmd_reformat_intro {
 "six windows, and use /WIN NAME <name> to name them.\n".
 "If you're lazy or just want to create all windows at once, try /REFORMAT ".
 "CREATE\n\n".
-"%_IMPORTANT%_: The default datafile is for Hybrid 7 and %_does not work ".
-"properly%_ on other types of ircds. Visit the HOSC site on ".
-"http://www.garion.org/irssi/hosc.php to get datafiles for your ircd.".
 "", MSGLEVEL_CLIENTCRAP);
 }
 
