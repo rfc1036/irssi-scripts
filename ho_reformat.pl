@@ -58,10 +58,6 @@ my $datadir = Irssi::get_irssi_dir();
 # The datafile.
 my $datafile = "ho_reformat.data";
 
-# Mirror for a default datafile to be downloaded when the script isn't
-# able to find one.
-my $datafile_mirror;
-
 # Array of server notice reformatting data.
 my @serverreplaces;
 
@@ -277,6 +273,7 @@ sub add_event {
 sub download_datafile {
 	my ($datafile) = @_;
 
+	my $datafile_mirror = Irssi::settings_get_str('ho_rewrite_datafile_url');
 	if (not $datafile_mirror) {
 		Irssi::print("Datafile ~/.irssi/ho_reformat.data not found and no source defined!");
 		return;
@@ -296,7 +293,7 @@ sub download_datafile {
 
 	my $useragent = LWP::UserAgent->new(env_proxy => 1,keep_alive => 1,timeout => 30);
 	$useragent->agent('HybridOper/'.$VERSION);
-	my $request = HTTP::Request->new('GET', $datafile_mirror.'ho_reformat.data.hybrid7');
+	my $request = HTTP::Request->new('GET', $datafile_mirror);
 
 	my $response = $useragent->request($request);
 	if ($response->is_success()) {
@@ -675,6 +672,7 @@ Irssi::command_bind('reformat inject', 'cmd_reformat_inject');
 
 Irssi::settings_add_bool("ho", "ho_reformat_multinetwork", 0);
 Irssi::settings_add_bool('ho', 'ho_prepend_servertag', 0);
+Irssi::settings_add_str('ho', 'ho_rewrite_datafile_url', '');
 Irssi::settings_add_str("ho", "ho_rewrite_servername", '');
 
 # --------[ Intialization ]---------------------------------------------
