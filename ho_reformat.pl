@@ -2,8 +2,6 @@
 #
 # ho_reformat.pl
 #
-# $Id: ho_reformat.pl,v 1.8 2003/02/25 19:49:45 jvunder Exp $
-#
 # Part of the Hybrid Oper Script Collection.
 #
 # This script takes incoming server notices and reformats them. It then
@@ -39,7 +37,7 @@ use Irssi::UI;
 
 # ======[ Script Header ]===============================================
 
-($VERSION) = '$Revision: 1.8 $' =~ / (\d+\.\d+) /;
+$VERSION = '20210607';
 %IRSSI = (
 	authors	=> 'Garion',
 	contact	=> 'garion@efnet.nl',
