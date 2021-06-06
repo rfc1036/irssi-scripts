@@ -271,6 +271,7 @@ sub add_formats_to_themearray {
 sub add_event {
 	my $linenum = shift;
 
+	local $_ = '--------------------'; # have something to test the regexp on
 	# Test if the regular expression is valid
 	eval { /$_[1]/ };
 	if ($@) {
