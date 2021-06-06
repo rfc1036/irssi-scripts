@@ -382,7 +382,7 @@ sub check_windows {
 		"underscore, for example efnet_conn.", MSGLEVEL_CRAP);
 	return;
 	}
-	my @windownames = get_all_windownames();
+	my @windownames = get_all_windownames() or return;
 	my @winnotfound = get_missing_windownames();
 
 	# Print a warning if there are any missing windows.
