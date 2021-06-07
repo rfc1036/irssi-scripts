@@ -185,9 +185,7 @@ sub get_window_by_name {
 	# I'm hoping that this does ALWAYS exist :)
 	# But if not... how can this be improved so to ALWAYS return a valid
 	# window reference?
-	if (!defined($win)) {
-		$win = Irssi::window_find_refnum(1);
-	}
+	$win //= Irssi::window_find_refnum(1);
 
 	return $win;
 }
@@ -307,29 +305,19 @@ sub get_all_windownames {
 	# Set $tmp{windowname} = 1 for each different window name.
 	# Then, the @keys of the hash contains an array of all the window
 	# names.
-	for my $i (0 .. $#serverreplaces) {
-		my $winnamestring = $serverreplaces[$i][3];
-
+	foreach my $rule (@serverreplaces) {
 		# Each window name string can consist of multiple window names,
 		# space separated.
-		my @windownames = split(/ +/, $winnamestring);
+		my @windownames = split(/\s+/, $rule->[3]);
 
 		# Set the tmp hash value to 1 using each window name as key.
 		foreach my $windowname (@windownames) {
-			$windowname =~ s/^ +//;
-			$windowname =~ s/ +$//;
-
-			# Don't add "active" or "devnull"
-			if ($windowname ne "active" && $windowname ne "devnull") {
-				$tmp{$windowname} = 1;
-			}
+			next if $windowname eq 'active' or $windowname eq 'devnull';
+			$tmp{$windowname} = 1;
 		}
 	}
 
-	# Get the array of window names.
-	my @windownames = keys(%tmp);
-
-	return @windownames;
+	return keys %tmp;
 }
 
 # --------[ get_missing_windownames ]-----------------------------------
@@ -493,12 +481,9 @@ sub cmd_reformat_list {
 	}
 
 	my $numreformats = 0;
-	for my $i ( 0 .. $#serverreplaces ) {
-		my $aref = $serverreplaces[$i];
-		my $n = @$aref - 1;
-
-		my $name = $serverreplaces[$i][0];
-		my $winname = $serverreplaces[$i][3];
+	foreach my $rule (@serverreplaces) {
+		my $name = $rule->[0];
+		my $winname = $rule->[3];
 
 		# If there is an argument, assume it's a window name and print only
 		# the reformattings to that window name.
