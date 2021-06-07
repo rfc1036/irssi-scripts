@@ -14,6 +14,8 @@
 # This script uses a data file (~/.irssi/ho_reformat.data) which needs to
 # be installed as appropriate for your ircd.
 
+use v5.14;
+use utf8;
 use warnings;
 use strict;
 use vars qw($VERSION %IRSSI);
@@ -47,9 +49,6 @@ $VERSION = '20210607';
 
 # The prefix that all server notices seem to have.
 my $prefix = "\\\*\\\*\\\* Notice -- ";
-
-# Irssi scripts dir.
-my $scriptdir = Irssi::get_irssi_dir() . "/scripts";
 
 # Irssi data dir.
 my $datadir = Irssi::get_irssi_dir();
