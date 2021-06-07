@@ -628,6 +628,12 @@ sub cmd_reformat_inject {
 	}
 
 	Irssi::print("Faking a server notice ($data)");
+	# create a mock object to allow using the command when not connected
+	$server //= {
+		nick => 'nick',
+		real_address => 'server.example.net',
+		tag => 1,
+	};
 	event_serverevent($server, "NOTICE $server->{nick} :$data",
 		$server->{real_address}, '');
 }
