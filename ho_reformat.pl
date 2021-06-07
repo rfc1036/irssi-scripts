@@ -72,26 +72,15 @@ my @themeformats;
 
 sub event_serverevent {
 	my ($server, $msg, $nick, $hostmask) = @_;
-	my ($nickname, $username, $hostname);
 
 	# If it is not a NOTICE, we don't want to have anything to do with it.
 	# Don't mess with notices to channels or @/+ channel either -- jilles
-	if ($msg !~ /^NOTICE [^#&@+]/) {
-		return;
-	}
+	return if $msg !~ /^NOTICE [^#&@+]/;
 
 	# For a server notice, the hostmask is empty.
 	# If the hostmask is set, it is not a server NOTICE, so we'll ignore it
 	# as well.
 	return if $hostmask;
-
-	# For a server notice, the source server is stored in $nick.
-	# It can happen that a server notice from a different server is sent
-	# to us. This notice must not be reformatted.
-	# Skip this -- jilles
-	#if ($nick ne $server->{real_address}) {
-	#	return;
-	#}
 
 	# transform with a regexp the server name before printing it
 	# e.g. ^([^\.]+).+
@@ -100,18 +89,11 @@ sub event_serverevent {
 		$rewrite_servername = qr/$re/;
 	}
 
-	my $ownnick = $server->{'nick'};
-
 	# Remove the NOTICE part from the message
-	# NOTE: this is probably unnecessary.
 	$msg =~ s/^NOTICE \S+ ://;
 
-	# Remove the server prefix
-	# NOTE: this is probably unnecessary.
-	# Skip notices not starting with "*** Notice --" -- jilles
-	if (!($msg =~ s/^$prefix//)) {
-		return;
-	}
+	# Remove the server prefix and skip the notice if it is missing
+	return if $msg !~ s/^$prefix//;
 
 	# Check each notice reformatting regexp to see if this NOTICE matches
 	for my $i (0 .. $#serverreplaces) {
