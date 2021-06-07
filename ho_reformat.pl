@@ -489,11 +489,11 @@ sub load_datafile {
 
 sub cmd_reformat {
 	my ($data, $server, $item) = @_;
-	if ($data =~ m/^[(help)|(list)|(intro)|(create)]/i ) {
-		Irssi::command_runsub ('reformat', $data, $server, $item);
-	}
-	else {
-		Irssi::print("Use /reformat (help|list|intro|create|inject).")
+
+	if ($data =~ /^(?:help|list|intro|create|inject)(?:\s|$)/i) {
+		Irssi::command_runsub('reformat', $data, $server, $item);
+	} else {
+		Irssi::print("Use /REFORMAT [HELP|LIST|INTRO|CREATE|INJECT]")
 	}
 }
 
