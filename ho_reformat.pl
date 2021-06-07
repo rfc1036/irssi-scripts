@@ -399,9 +399,9 @@ sub load_datafile {
 		$line =~ s/\s+$//;
 
 		# Ignore comments and empty lines
-		if ($line =~ /^#/ || $line =~ /^\s+$/ || length($line) == 0) {
-			# comment, ignoring
-		} else {
+		next if $line =~ /^#/ or $line eq '';
+
+		{
 			$numreformats++;
 
 			# First line is <name> [option1] [option2] [..]
@@ -488,7 +488,7 @@ sub cmd_reformat {
 sub cmd_reformat_list {
 	my ($data, $server, $item) = @_;
 
-	if (length($data) > 0) {
+	if ($data ne '') {
 		Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
 		"Active server notice reformattings to window $data:");
 	} else {
@@ -506,7 +506,7 @@ sub cmd_reformat_list {
 
 		# If there is an argument, assume it's a window name and print only
 		# the reformattings to that window name.
-		if (length($data) > 0) {
+		if ($data ne '') {
 			if ($data eq $winname) {
 				Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap', $name);
 				$numreformats++;
@@ -622,7 +622,7 @@ sub cmd_reformat_create {
 sub cmd_reformat_inject {
 	my ($data, $server, $item) = @_;
 
-	if (length($data) == 0) {
+	if ($data eq '') {
 		Irssi::print("Injects a server notice. Mostly used for testing purposes. ".
 		"Use /REFORMAT INJECT [notice].");
 		return;
