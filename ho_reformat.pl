@@ -21,7 +21,6 @@ use vars qw($VERSION %IRSSI);
 use Irssi;
 use Irssi::TextUI;
 use Irssi::UI;
-#use LWP::UserAgent;
 
 # ======[ Script Header ]===============================================
 
@@ -281,33 +280,38 @@ sub download_datafile {
 	}
 
 	eval { require LWP::UserAgent; };
-
 	if ($@) {
 		Irssi::print($@, MSGLEVEL_CLIENTERROR);
 		return;
 	}
 
 	import LWP::UserAgent;
+
 	Irssi::print("Data file not found. Trying to download one from"
 		. " $datafile_mirror", MSGLEVEL_CLIENTCRAP);
 
-	my $useragent = LWP::UserAgent->new(env_proxy => 1,keep_alive => 1,timeout => 30);
-	$useragent->agent('HybridOper/'.$VERSION);
+	my $useragent = LWP::UserAgent->new(
+		env_proxy			=> 1,
+		timeout				=> 10,
+		protocols_allowed	=> [qw(https)],
+	);
+	$useragent->agent('HybridOperMd/' . $VERSION);
 	my $request = HTTP::Request->new('GET', $datafile_mirror);
 
 	my $response = $useragent->request($request);
-	if ($response->is_success()) {
-		my $file = $response->content();
-		local *F;
-		open(F, '>' . $datafile);
-		print F $file;
-		close(F);
-		Irssi::print("Default data file successfully fetched and stored"
-			. " in $datafile.", MSGLEVEL_CLIENTCRAP);
-	} else {
+	if (not $response->is_success) {
 		Irssi::print("Unable to download the data file from $datafile_mirror: "
 			. $response->status_line, MSGLEVEL_CLIENTERROR);
+		return;
 	}
+
+	my $file = $response->content;
+	open(my $fh, '>', $datafile) or die $!;
+	print $fh $file;
+	close($fh) or die $!;
+	Irssi::print("Default data file successfully fetched and stored"
+		. " in $datafile.", MSGLEVEL_CLIENTCRAP);
+	return;
 }
 
 # --------[ get_all_windownames ]---------------------------------------
