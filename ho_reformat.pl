@@ -393,7 +393,7 @@ sub check_windows {
 		"/REFORMAT INTRO to find out why they are needed.", MSGLEVEL_CRAP);
 	}
 
-	Irssi::print("Using output windows %c@windownames%n.", MSGLEVEL_CRAP);
+	Irssi::print("Using output windows %c@windownames%n.", MSGLEVEL_CLIENTCRAP);
 }
 
 # --------[ load_datafile ]---------------------------------------------
@@ -402,7 +402,7 @@ sub check_windows {
 
 sub load_datafile {
 	my ($file) = @_;
-	Irssi::print("Loading $file.", MSGLEVEL_CRAP);
+	Irssi::print("Loading $file.", MSGLEVEL_CLIENTCRAP);
 
 	my $prepend_servertag = Irssi::settings_get_bool('ho_prepend_servertag');
 
@@ -481,7 +481,7 @@ sub load_datafile {
 	close(F);
 
 	Irssi::print("Processed $numreformats server notice reformats.",
-	MSGLEVEL_CRAP);
+		MSGLEVEL_CLIENTCRAP);
 }
 
 # --------[ cmd_reformat ]----------------------------------------------
@@ -676,7 +676,7 @@ Irssi::settings_add_str("ho", "ho_rewrite_servername", '');
 
 # --------[ Intialization ]---------------------------------------------
 
-Irssi::print("%CHybrid Oper Script Collection%n - %GServer Notice Reformatting%n", MSGLEVEL_CRAP);
+Irssi::print("%CHybrid Oper Script Collection%n - %GServer Notice Reformatting%n", MSGLEVEL_CLIENTCRAP);
 
 # Add the basic ho formats to the theme format array
 add_formats_to_themearray();
@@ -688,8 +688,8 @@ if (! -f "$datadir/$datafile") {
 
 # If the datafile exists, load it.
 if (! -f "$datadir/$datafile") {
-	Irssi::print("Could not load datafile. No reformattings loaded.",
-		MSGLEVEL_CRAP);
+	Irssi::print("Data file $datadir/$datafile not found: no reformattings loaded.",
+		MSGLEVEL_CLIENTNOTICE);
 } else {
 	load_datafile("$datadir/$datafile");
 }
@@ -701,9 +701,7 @@ Irssi::theme_register(\@themeformats);
 check_windows();
 
 Irssi::print("Use %_/REFORMAT HELP%_ for help and %_/REFORMAT INTRO%_ for an introduction.",
-MSGLEVEL_CRAP);
-
-Irssi::print("%GServer Notice Reformatting%n script loaded.", MSGLEVEL_CRAP);
+	MSGLEVEL_CLIENTCRAP);
 
 # ======[ END ]=========================================================
 
