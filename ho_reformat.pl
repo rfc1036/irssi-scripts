@@ -338,14 +338,12 @@ sub get_all_windownames {
 
 sub get_missing_windownames {
 	my @windownames = get_all_windownames();
-	my @winnotfound = ();
+	my @winnotfound;
 
 	# Put the not found windows in an array.
 	foreach my $windowname (@windownames) {
 		my $win = Irssi::window_find_name($windowname);
-		if (!defined($win)) {
-			push(@winnotfound, $windowname);
-		}
+		push(@winnotfound, $windowname) if not defined $win;
 	}
 
 	return @winnotfound;
@@ -357,21 +355,21 @@ sub get_missing_windownames {
 
 sub check_windows {
 	if (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
-		Irssi::print("Using multi-network settings in reformat. Prepend ".
-		"your window names with the network tag followed by an ".
-		"underscore, for example efnet_conn.", MSGLEVEL_CRAP);
-	return;
+		Irssi::print("Using multi-network settings in reformat. Prepend"
+			. " your window names with the network tag followed by an"
+			. " underscore, for example 'efnet_conn.'", MSGLEVEL_CLIENTCRAP);
+		return;
 	}
 	my @windownames = get_all_windownames() or return;
 	my @winnotfound = get_missing_windownames();
 
 	# Print a warning if there are any missing windows.
-	if (@winnotfound > 0) {
-		my $plural = "";
-		if (@winnotfound > 1) { $plural = "s"; }
-		Irssi::print("%RWarning%n: you are missing the window" . $plural .
-		" named %c@winnotfound%n. Use /WIN NAME <name> to name windows and ".
-		"/REFORMAT INTRO to find out why they are needed.", MSGLEVEL_CRAP);
+	if (@winnotfound) {
+		my $plural = @winnotfound == 0 ? '' : 's';
+		Irssi::print("%RWarning%n: you are missing the window$plural"
+			. " named %c@winnotfound%n."
+			. " Use /WIN NAME <name> to name windows and /REFORMAT INTRO"
+			. " to find out why they are needed.", MSGLEVEL_CLIENTNOTICE);
 	}
 
 	Irssi::print("Using output windows %c@windownames%n.", MSGLEVEL_CLIENTCRAP);
@@ -591,25 +589,28 @@ sub cmd_reformat_intro {
 
 sub cmd_reformat_create {
 	my ($data, $server, $item) = @_;
+
 	my @missingwindows = get_missing_windownames();
-	if (@missingwindows == 0) {
-		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-		"All necessary windows are present. Not creating any extra.");
-	} else {
-		my @winnums;
-		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-		"Creating the missing windows: @missingwindows.");
-		foreach my $missingwindow (@missingwindows) {
-			my $win = Irssi::Windowitem::window_create($missingwindow, 1);
-			$win->change_server($server);
-			$win->set_name($missingwindow);
-			push @winnums, $win->{'refnum'};
-			$win->printformat(MSGLEVEL_PUBLIC, "ho_crap",
-			"Created $missingwindow.");
-		}
-		Irssi::printformat(MSGLEVEL_PUBLIC, "ho_crap",
-		"Created the missing windows in: @winnums.");
+	if (not @missingwindows) {
+		Irssi::printformat(MSGLEVEL_PUBLIC, 'ho_crap',
+			'All necessary windows are present. Not creating any extra.');
+		return;
 	}
+
+	my @winnums;
+	Irssi::printformat(MSGLEVEL_PUBLIC, 'ho_crap',
+		"Creating the missing windows: @missingwindows.");
+	foreach my $missingwindow (@missingwindows) {
+		my $win = Irssi::Windowitem::window_create($missingwindow, 1);
+		$win->change_server($server);
+		$win->set_name($missingwindow);
+		push(@winnums, $win->{refnum});
+		$win->printformat(MSGLEVEL_PUBLIC, 'ho_crap',
+			"Created $missingwindow.");
+	}
+	Irssi::printformat(MSGLEVEL_PUBLIC, 'ho_crap',
+		"Created the missing windows in: @winnums.");
+	return;
 }
 
 # --------[ cmd_reformat_inject ]---------------------------------------
@@ -627,8 +628,8 @@ sub cmd_reformat_inject {
 	}
 
 	Irssi::print("Faking a server notice ($data)");
-	my $nick = $server->{'nick'};
-	event_serverevent($server, "NOTICE $nick :$data", $server->{real_address}, '');
+	event_serverevent($server, "NOTICE $server->{nick} :$data",
+		$server->{real_address}, '');
 }
 
 # ======[ Setup ]=======================================================
