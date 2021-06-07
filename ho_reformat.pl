@@ -2,29 +2,17 @@
 #
 # ho_reformat.pl
 #
-# Part of the Hybrid Oper Script Collection.
+# Copyright (C) 2003 Garion <garion@efnet.nl>.
+# Copyright (C) 2021 Marco d'Itri <md@linux.it>.
+#
+# This script used to be part of the Hybrid Oper Script Collection by Garion.
+# Marco d'Itri (Md) adopted it in 2021.
 #
 # This script takes incoming server notices and reformats them. It then
 # sends them to any window.
 #
-# This script uses a datafile: ~/.irssi/ho_reformat.data
-#
-# Tweaked by jilles <jilles-AT-stack.nl> to ignore server notices to channels
-# and @channels, non "*** Notice --" stuff and conditionally accept server
-# notices from other servers. (For charybdis).
-
-# TODO
-# - check hyb6/7 version using /quote version.
-# - /set ho_log_raw_servermsg ON|OFF
-#
-
-###########################################################################
-#
-# Feature description:
-#
-# - fully customizable server notice reformatting and redirection
-#
-###########################################################################
+# This script uses a data file (~/.irssi/ho_reformat.data) which needs to
+# be installed as appropriate for your ircd.
 
 use warnings;
 use strict;
@@ -39,13 +27,12 @@ use Irssi::UI;
 
 $VERSION = '20210607';
 %IRSSI = (
-	authors	=> 'Garion',
-	contact	=> 'garion@efnet.nl',
+	authors	=> "Garion, Marco d'Itri",
+	contact	=> 'md@linux.it',
 	name	=> 'ho_reformat',
-	description	=> 'Hybrid Oper Script Collection - server notice reformatting',
-	license	=> 'Public Domain',
-	url		=> 'http://www.garion.org/irssi/hosc.php',
-	changed	=> '18 January 2003 15:01:02',
+	description	=> 'server notice reformatting',
+	license	=> 'GPLv2+',
+	url		=> 'https://www.linux.it/~md/irssi/',
 );
 
 # ======[ Credits ]=====================================================
@@ -54,6 +41,7 @@ $VERSION = '20210607';
 # zapi - hybrid 6 data formats and feature suggestions.
 # peder - helping with formatting messages.
 # JamesOff - feature suggestions, code modifications.
+# jilles - tweaks for charybdis.
 #
 
 # ======[ Variables ]===================================================
