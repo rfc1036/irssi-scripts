@@ -401,62 +401,60 @@ sub load_datafile {
 		# Ignore comments and empty lines
 		next if $line =~ /^#/ or $line eq '';
 
-		{
-			$numreformats++;
+		$numreformats++;
 
-			# First line is <name> [option1] [option2] [..]
-			my $name = $line;
-			my $options = "";
-			if ($name =~ /([^ ]+) +([^ ]+)/) {
-				$name = $1;
-				$options = $2;
-			}
-
-			# Second line is <regexp>
-			my $regexp = <F>; chop($regexp);
-
-			# Third line is <format>
-			my $format = <F>; chop($format);
-			$format =~ s/^\[\$0\] // if not $prepend_servertag;
-
-			# Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
-			my $winnames = <F>; chop($winnames);
-			$winnames =~ s/ +/ /;
-			my $msglevel = "CLIENTCRAP";
-
-			# Set msglevel to MSG if "MSG" is present in this line.
-			if ($winnames =~ /MSG/) {
-				$winnames =~ s/MSG//;
-				$msglevel = "MSG";
-			}
-
-			# Set msglevel to HILIGHT if "HILIGHT" is present in this line.
-			if ($winnames =~ /HILIGHT/) {
-				$winnames =~ s/HILIGHT//;
-				$msglevel = "HILIGHT";
-			}
-
-			# Set msglevel to NONE if "NONE" is present in this line.
-			if ($winnames =~ /NONE/) {
-				$winnames =~ s/NONE//;
-				$msglevel = "NONE";
-			}
-
-			# Remove spaces from begin and end.
-			$winnames =~ s/^ +//;
-			$winnames =~ s/ +$//;
-
-			# Add this reformatting to the reformat data structure.
-			add_event($linenum, $name, $regexp, $format,
-				$winnames, $msglevel, $options);
-
-			# Add the formats to an array which will be passed to theme_register
-			# The format is prepended with "ho_r_"; this is to make sure there
-			# are no name clashes with other ho_ formats.
-			my $formatname = "ho_r_" . $name;
-			my $formatvalue = '{line_start}' . $format;
-			push(@themeformats, $formatname => $formatvalue);
+		# First line is <name> [option1] [option2] [..]
+		my $name = $line;
+		my $options = "";
+		if ($name =~ /([^ ]+) +([^ ]+)/) {
+			$name = $1;
+			$options = $2;
 		}
+
+		# Second line is <regexp>
+		my $regexp = <F>; chop($regexp);
+
+		# Third line is <format>
+		my $format = <F>; chop($format);
+		$format =~ s/^\[\$0\] // if not $prepend_servertag;
+
+		# Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
+		my $winnames = <F>; chop($winnames);
+		$winnames =~ s/ +/ /;
+		my $msglevel = "CLIENTCRAP";
+
+		# Set msglevel to MSG if "MSG" is present in this line.
+		if ($winnames =~ /MSG/) {
+			$winnames =~ s/MSG//;
+			$msglevel = "MSG";
+		}
+
+		# Set msglevel to HILIGHT if "HILIGHT" is present in this line.
+		if ($winnames =~ /HILIGHT/) {
+			$winnames =~ s/HILIGHT//;
+			$msglevel = "HILIGHT";
+		}
+
+		# Set msglevel to NONE if "NONE" is present in this line.
+		if ($winnames =~ /NONE/) {
+			$winnames =~ s/NONE//;
+			$msglevel = "NONE";
+		}
+
+		# Remove spaces from begin and end.
+		$winnames =~ s/^ +//;
+		$winnames =~ s/ +$//;
+
+		# Add this reformatting to the reformat data structure.
+		add_event($linenum, $name, $regexp, $format,
+			$winnames, $msglevel, $options);
+
+		# Add the formats to an array which will be passed to theme_register
+		# The format is prepended with "ho_r_"; this is to make sure there
+		# are no name clashes with other ho_ formats.
+		my $formatname = "ho_r_" . $name;
+		my $formatvalue = '{line_start}' . $format;
+		push(@themeformats, $formatname => $formatvalue);
 	}
 
 	close(F);
