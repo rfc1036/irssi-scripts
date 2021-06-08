@@ -105,75 +105,74 @@ sub event_serverevent {
 	# Check each notice reformatting regexp to see if this NOTICE matches
 	foreach my $rule (@serverreplaces) {
 		# Check if the message matches this regexp.
-		if (my @vars = $msg =~ /$rule->[R_REGEXP]/) {
-			# If the replacement is only for a certain network, ignore it if
-			# this is not that network.
-			if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
-				next if lc($server->{tag}) ne lc($1);
-			}
+		my @vars = $msg =~ /$rule->[R_REGEXP]/;
+		next if not @vars;
 
-			# If the target window is or contains "devnull", the server notice
-			# will be discarded. Otherwise, process it.
-			if ($rule->[R_WINDOWS] =~ /devnull/) {
-				Irssi::signal_stop();
-				last;
-			}
+		# If the replacement is only for a certain network, ignore it if
+		# this is not that network.
+		if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
+			next if lc($server->{tag}) ne lc($1);
+		}
 
-			if ($rule->[R_OPTIONS] =~ /SERVERNAME/) {
-				$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
-				unshift(@vars, $nick);
-			} elsif ($nick ne $server->{real_address}) {
-				next;
-			}
-
-			# Get the target windows for this message
-			my @windows = split(/ /, $rule->[R_WINDOWS]);
-
-			# Send the reformatted message to each window
-			foreach my $win (@windows) {
-				# Ugly hack for sort of multi network support.
-				# This must be changed.
-				next if $win =~ /:$/;
-
-				# Get the target window for this message
-				# Use the active window if it's "active"
-				my $targetwin;
-				if ($win eq 'active') {
-					$targetwin = Irssi::active_win();
-				} elsif ($multinetwork) {
-					$targetwin =
-						Irssi::window_find_name(lc($server->{tag}) . "_$win") ||
-						Irssi::window_find_name($win);
-				} else {
-					$targetwin = Irssi::window_find_name($win);
-				}
-				# or else use windows 1 if a named one was not found
-				$targetwin //= Irssi::window_find_refnum(1);
-
-				# Send the reformatted message to the window
-				# But only if the target is not "<otherservertag>: win1 win2"
-				my $msglevel = get_msglevel($rule->[R_MSGLEVEL]);
-				if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
-					if (lc($1) eq lc($server->{tag})) {
-						$targetwin->printformat($msglevel,
-							'ho_r_' . $rule->[R_NAME],
-							$server->{tag}, @vars);
-					}
-				} else {
-					$targetwin->printformat($msglevel,
-						'ho_r_' . $rule->[R_NAME],
-						$server->{tag}, @vars);
-				}
-			}
-
-			# Stop the signal
+		# If the target window is or contains "devnull", the server notice
+		# will be discarded. Otherwise, process it.
+		if ($rule->[R_WINDOWS] =~ /devnull/) {
 			Irssi::signal_stop();
+			last;
+		}
 
-			# Stop matching regexps if continuematching == 0
-			# More ugly hack shit. Needs to be done decently.
-			if ($rule->[R_OPTIONS] !~ /continuematch/) {
-				last;
+		if ($rule->[R_OPTIONS] =~ /SERVERNAME/) {
+			$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
+			unshift(@vars, $nick);
+		} elsif ($nick ne $server->{real_address}) {
+			next;
+		}
+
+		# Get the target windows for this message
+		my @windows = split(/ /, $rule->[R_WINDOWS]);
+
+		# Send the reformatted message to each window
+		foreach my $win (@windows) {
+			# Ugly hack for sort of multi network support.
+			# This must be changed.
+			next if $win =~ /:$/;
+
+			# Get the target window for this message
+			# Use the active window if it's "active"
+			my $targetwin;
+			if ($win eq 'active') {
+				$targetwin = Irssi::active_win();
+			} elsif ($multinetwork) {
+				$targetwin =
+					Irssi::window_find_name(lc($server->{tag}) . "_$win") ||
+					Irssi::window_find_name($win);
+			} else {
+				$targetwin = Irssi::window_find_name($win);
 			}
+			# or else use windows 1 if a named one was not found
+			$targetwin //= Irssi::window_find_refnum(1);
+
+			# Send the reformatted message to the window
+			# But only if the target is not "<otherservertag>: win1 win2"
+			my $msglevel = get_msglevel($rule->[R_MSGLEVEL]);
+			if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
+				if (lc($1) eq lc($server->{tag})) {
+					$targetwin->printformat($msglevel,
+						'ho_r_' . $rule->[R_NAME], $server->{tag}, @vars);
+				}
+			} else {
+				$targetwin->printformat($msglevel,
+					'ho_r_' . $rule->[R_NAME], $server->{tag}, @vars);
+			}
+		}
+
+		# Stop the signal
+		Irssi::signal_stop();
+
+		# Stop matching regexps if continuematching == 0
+		# More ugly hack shit. Needs to be done decently.
+		if ($rule->[R_OPTIONS] !~ /continuematch/) {
+			last;
 		}
 	}
 }
