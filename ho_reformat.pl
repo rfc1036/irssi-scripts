@@ -127,7 +127,7 @@ sub event_serverevent {
 			}
 
 			# Get the target windows for this message
-			my @windows = split(/ +/, $rule->[R_WINDOWS]);
+			my @windows = split(/ /, $rule->[R_WINDOWS]);
 
 			# Send the reformatted message to each window
 			foreach my $win(@windows) {
@@ -307,7 +307,7 @@ sub get_all_windownames {
 	my %all_windows =
 		map { $_ => 1 }
 		grep { $_ ne 'active' and $_ ne 'devnull' }
-		map { split(/\s+/, $_->[R_WINDOWS]) }
+		map { split(/ /, $_->[R_WINDOWS]) }
 		@serverreplaces;
 
 	return sort keys %all_windows;
@@ -363,7 +363,7 @@ sub load_datafile {
 
 	while (my $line = <$fh>) {
 		$linenum++;
-		chop($line);
+		chomp $line;
 
 		# Remove spaces at the end
 		$line =~ s/\s+$//;
@@ -374,46 +374,48 @@ sub load_datafile {
 		$numreformats++;
 
 		# First line is <name> [option1] [option2] [..]
-		my $name = $line;
-		my $options = "";
-		if ($name =~ /([^ ]+) +([^ ]+)/) {
-			$name = $1;
-			$options = $2;
+		if ($line !~ /^([a-z0-9_]+)(?:\s+(\S.+))?\s*$/) {
+			$line =~ s/%/%%/g;
+			Irssi::print("Invalid line in the data file: $line",
+					MSGLEVEL_CLIENTERROR);
+			next;
 		}
+		my $name = $1;
+		my $options = $2 || '';
 
 		# Second line is <regexp>
-		my $regexp = <$fh>; chop($regexp);
+		my $regexp = <$fh>; chomp $regexp;
 
 		# Third line is <format>
-		my $format = <$fh>; chop($format);
+		my $format = <$fh>; chomp $format;
 		$format =~ s/^\[\$0\] // if not $prepend_servertag;
 
 		# Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
-		my $winnames = <$fh>; chop($winnames);
-		$winnames =~ s/ +/ /;
-		my $msglevel = "CLIENTCRAP";
+		my $winnames = <$fh>; chomp $winnames;
+		my $msglevel = 'CLIENTCRAP';
 
 		# Set msglevel to MSG if "MSG" is present in this line.
-		if ($winnames =~ /MSG/) {
-			$winnames =~ s/MSG//;
-			$msglevel = "MSG";
+		if ($winnames =~ /\bMSG\b/) {
+			$winnames =~ s/\bMSG\b//g;
+			$msglevel = 'MSG';
 		}
 
 		# Set msglevel to HILIGHT if "HILIGHT" is present in this line.
-		if ($winnames =~ /HILIGHT/) {
-			$winnames =~ s/HILIGHT//;
-			$msglevel = "HILIGHT";
+		if ($winnames =~ /\bHILIGHT\b/) {
+			$winnames =~ s/\bHILIGHT\b//g;
+			$msglevel = 'HILIGHT';
 		}
 
 		# Set msglevel to NONE if "NONE" is present in this line.
-		if ($winnames =~ /NONE/) {
-			$winnames =~ s/NONE//;
-			$msglevel = "NONE";
+		if ($winnames =~ /\bNONE\b/) {
+			$winnames =~ s/\bNONE\b//g;
+			$msglevel = 'NONE';
 		}
 
 		# Remove spaces from begin and end.
 		$winnames =~ s/^ +//;
 		$winnames =~ s/ +$//;
+		$winnames =~ s/ +/ /g;
 
 		# Add this reformatting to the reformat data structure.
 		add_event($linenum, $name, $regexp, $format,
