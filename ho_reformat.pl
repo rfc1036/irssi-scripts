@@ -93,23 +93,23 @@ sub event_serverevent {
 	return if $msg !~ s/^$prefix//;
 
 	# Check each notice reformatting regexp to see if this NOTICE matches
-	for my $i (0 .. $#serverreplaces) {
+	foreach my $rule (@serverreplaces) {
 		# Check if the message matches this regexp.
-		if (my @vars = $msg =~ /$serverreplaces[$i][1]/) {
+		if (my @vars = $msg =~ /$rule->[1]/) {
 			# If the replacement is only for a certain network, ignore it if
 			# this is not that network.
-			if ($serverreplaces[$i][3] =~ /^(\S+): /) {
+			if ($rule->[3] =~ /^(\S+): /) {
 				next if lc($server->{tag}) ne lc($1);
 			}
 
 			# If the target window is or contains "devnull", the server notice
 			# will be discarded. Otherwise, process it.
-			if ($serverreplaces[$i][3] =~ /devnull/) {
+			if ($rule->[3] =~ /devnull/) {
 				Irssi::signal_stop();
 				last;
 			}
 
-			if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
+			if ($rule->[5] =~ /SERVERNAME/) {
 				$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
 				unshift(@vars, $nick);
 			} elsif ($nick ne $server->{real_address}) {
@@ -117,7 +117,7 @@ sub event_serverevent {
 			}
 
 			# Get the target windows for this message
-			my @windows = split(/ +/, $serverreplaces[$i][3]);
+			my @windows = split(/ +/, $rule->[3]);
 
 			# Send the reformatted message to each window
 			foreach my $win(@windows) {
@@ -140,14 +140,14 @@ sub event_serverevent {
 
 				# Send the reformatted message to the window
 				# But only if the target is not "<otherservertag>: win1 win2"
-				my $msglevel = get_msglevel($serverreplaces[$i][4]);
-				if ($serverreplaces[$i][3] =~ /^(\S+): /) {
+				my $msglevel = get_msglevel($rule->[4]);
+				if ($rule->[3] =~ /^(\S+): /) {
 					if (lc($1) eq lc($server->{tag})) {
-						$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
+						$targetwin->printformat($msglevel, "ho_r_" . $rule->[0],
 						$server->{tag}, @vars);
 					}
 				} else {
-					$targetwin->printformat($msglevel, "ho_r_" . $serverreplaces[$i][0],
+					$targetwin->printformat($msglevel, "ho_r_" . $rule->[0],
 						$server->{tag}, @vars);
 				}
 			}
@@ -157,7 +157,7 @@ sub event_serverevent {
 
 			# Stop matching regexps if continuematching == 0
 			# More ugly hack shit. Needs to be done decently.
-			if ($serverreplaces[$i][5] !~ /continuematch/) {
+			if ($rule->[5] !~ /continuematch/) {
 				last;
 			}
 		}
