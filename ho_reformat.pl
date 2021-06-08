@@ -99,9 +99,7 @@ sub event_serverevent {
 			# If the replacement is only for a certain network, ignore it if
 			# this is not that network.
 			if ($serverreplaces[$i][3] =~ /^(\S+): /) {
-				if (lc($server->{tag}) ne lc($1)) {
-				next;
-				}
+				next if lc($server->{tag}) ne lc($1);
 			}
 
 			# If the target window is or contains "devnull", the server notice
@@ -113,7 +111,7 @@ sub event_serverevent {
 
 			if ($serverreplaces[$i][5] =~ /SERVERNAME/) {
 				$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
-				unshift @vars, $nick;
+				unshift(@vars, $nick);
 			} elsif ($nick ne $server->{real_address}) {
 				next;
 			}
@@ -372,9 +370,9 @@ sub load_datafile {
 
 	my $linenum = 0;
 	my $numreformats = 0;
-	open(F, "<$file");
+	open(my $fh, '<', $file) or die $!;
 
-	while (my $line = <F>) {
+	while (my $line = <$fh>) {
 		$linenum++;
 		chop($line);
 
@@ -395,14 +393,14 @@ sub load_datafile {
 		}
 
 		# Second line is <regexp>
-		my $regexp = <F>; chop($regexp);
+		my $regexp = <$fh>; chop($regexp);
 
 		# Third line is <format>
-		my $format = <F>; chop($format);
+		my $format = <$fh>; chop($format);
 		$format =~ s/^\[\$0\] // if not $prepend_servertag;
 
 		# Fourth line is <targetwindow> [targetwindow] [..] [msglevel]
-		my $winnames = <F>; chop($winnames);
+		my $winnames = <$fh>; chop($winnames);
 		$winnames =~ s/ +/ /;
 		my $msglevel = "CLIENTCRAP";
 
@@ -435,12 +433,10 @@ sub load_datafile {
 		# Add the formats to an array which will be passed to theme_register
 		# The format is prepended with "ho_r_"; this is to make sure there
 		# are no name clashes with other ho_ formats.
-		my $formatname = "ho_r_" . $name;
-		my $formatvalue = '{line_start}' . $format;
-		push(@themeformats, $formatname => $formatvalue);
+		push(@themeformats, "ho_r_$name" => "{line_start}$format");
 	}
 
-	close(F);
+	close($fh) or die $!;
 
 	Irssi::print("Processed $numreformats server notice reformats.",
 		MSGLEVEL_CLIENTCRAP);
@@ -491,12 +487,12 @@ sub cmd_reformat_list {
 			}
 		} else {
 			Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-			"$name -> $winname.");
+				"$name -> $winname.");
 			$numreformats++;
 		}
 	}
 	Irssi::printformat(MSGLEVEL_CLIENTCRAP, 'ho_crap',
-	"Total: $numreformats.");
+		"Total: $numreformats.");
 }
 
 # --------[ cmd_reformat_help ]-----------------------------------------
