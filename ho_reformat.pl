@@ -647,24 +647,24 @@ sub cmd_reformat_update {
 
 # --------[ Register signals ]------------------------------------------
 
-Irssi::signal_add('server event', 'event_serverevent');
+Irssi::signal_add('server event'		=> \&event_serverevent);
 
 # --------[ Register commands ]-----------------------------------------
 
-Irssi::command_bind('reformat', 'cmd_reformat');
-Irssi::command_bind('reformat help', 'cmd_reformat_help');
-Irssi::command_bind('reformat list', 'cmd_reformat_list');
-Irssi::command_bind('reformat intro', 'cmd_reformat_intro');
-Irssi::command_bind('reformat create', 'cmd_reformat_create');
-Irssi::command_bind('reformat inject', 'cmd_reformat_inject');
-Irssi::command_bind('reformat update', 'cmd_reformat_update');
+Irssi::command_bind('reformat'			=> \&cmd_reformat);
+Irssi::command_bind('reformat help'		=> \&cmd_reformat_help);
+Irssi::command_bind('reformat list'		=> \&cmd_reformat_list);
+Irssi::command_bind('reformat intro'	=> \&cmd_reformat_intro);
+Irssi::command_bind('reformat create'	=> \&cmd_reformat_create);
+Irssi::command_bind('reformat inject'	=> \&cmd_reformat_inject);
+Irssi::command_bind('reformat update'	=> \&cmd_reformat_update);
 
 # --------[ Register settings ]-----------------------------------------
 
-Irssi::settings_add_bool("ho", "ho_reformat_multinetwork", 0);
-Irssi::settings_add_bool('ho', 'ho_prepend_servertag', 0);
-Irssi::settings_add_str('ho', 'ho_rewrite_datafile_url', '');
-Irssi::settings_add_str("ho", "ho_rewrite_servername", '');
+Irssi::settings_add_bool('ho', 'ho_reformat_multinetwork' =>	0);
+Irssi::settings_add_bool('ho', 'ho_prepend_servertag' =>		0);
+Irssi::settings_add_str('ho',  'ho_rewrite_datafile_url' =>		'');
+Irssi::settings_add_str('ho',  'ho_rewrite_servername' =>		'');
 
 # --------[ Intialization ]---------------------------------------------
 
