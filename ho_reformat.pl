@@ -643,6 +643,30 @@ sub cmd_reformat_update {
 	return;
 }
 
+sub initialization {
+	# If the datafile doesn't exist, download it.
+	if (not -f $datafile) {
+		download_datafile($datafile);
+	}
+
+	# Add the basic ho formats to the theme format array
+	add_formats_to_themearray();
+
+	# If the datafile exists, load it.
+	if (not -f $datafile) {
+		Irssi::print("Data file $datafile not found: no reformattings loaded.",
+			MSGLEVEL_CLIENTNOTICE);
+	} else {
+		load_datafile($datafile);
+	}
+
+	# Register all ho formats
+	Irssi::theme_register(\@themeformats);
+
+	# Check if all the named windows are present.
+	check_windows();
+}
+
 # ======[ Setup ]=======================================================
 
 # --------[ Register signals ]------------------------------------------
@@ -670,27 +694,7 @@ Irssi::settings_add_str('ho',  'ho_rewrite_servername' =>		'');
 
 Irssi::print("%CHybrid Oper Script Collection%n - %GServer Notice Reformatting%n", MSGLEVEL_CLIENTCRAP);
 
-# Add the basic ho formats to the theme format array
-add_formats_to_themearray();
-
-# If the datafile doesn't exist, download it.
-if (not -f $datafile) {
-	download_datafile($datafile);
-}
-
-# If the datafile exists, load it.
-if (not -f $datafile) {
-	Irssi::print("Data file $datafile not found: no reformattings loaded.",
-		MSGLEVEL_CLIENTNOTICE);
-} else {
-	load_datafile($datafile);
-}
-
-# Register all ho formats
-Irssi::theme_register(\@themeformats);
-
-# Check if all the named windows are present.
-check_windows();
+initialization();
 
 Irssi::print("Use %_/REFORMAT HELP%_ for help and %_/REFORMAT INTRO%_ for an introduction.",
 	MSGLEVEL_CLIENTCRAP);
