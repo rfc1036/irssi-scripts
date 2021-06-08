@@ -59,6 +59,14 @@ my @serverreplaces;
 # Array of formats that are registered in the current theme
 my @themeformats;
 
+use constant {
+	R_NAME		=> 0,
+	R_REGEXP	=> 1,
+	R_FORMAT	=> 2,
+	R_WINDOWS	=> 3,
+	R_MSGLEVEL	=> 4,
+	R_OPTIONS	=> 5,
+};
 
 # ======[ Signal hooks ]================================================
 
@@ -95,21 +103,21 @@ sub event_serverevent {
 	# Check each notice reformatting regexp to see if this NOTICE matches
 	foreach my $rule (@serverreplaces) {
 		# Check if the message matches this regexp.
-		if (my @vars = $msg =~ /$rule->[1]/) {
+		if (my @vars = $msg =~ /$rule->[R_REGEXP]/) {
 			# If the replacement is only for a certain network, ignore it if
 			# this is not that network.
-			if ($rule->[3] =~ /^(\S+): /) {
+			if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
 				next if lc($server->{tag}) ne lc($1);
 			}
 
 			# If the target window is or contains "devnull", the server notice
 			# will be discarded. Otherwise, process it.
-			if ($rule->[3] =~ /devnull/) {
+			if ($rule->[R_WINDOWS] =~ /devnull/) {
 				Irssi::signal_stop();
 				last;
 			}
 
-			if ($rule->[5] =~ /SERVERNAME/) {
+			if ($rule->[R_OPTIONS] =~ /SERVERNAME/) {
 				$nick =~ s/$rewrite_servername/$1/ if $rewrite_servername;
 				unshift(@vars, $nick);
 			} elsif ($nick ne $server->{real_address}) {
@@ -117,7 +125,7 @@ sub event_serverevent {
 			}
 
 			# Get the target windows for this message
-			my @windows = split(/ +/, $rule->[3]);
+			my @windows = split(/ +/, $rule->[R_WINDOWS]);
 
 			# Send the reformatted message to each window
 			foreach my $win(@windows) {
@@ -140,14 +148,14 @@ sub event_serverevent {
 
 				# Send the reformatted message to the window
 				# But only if the target is not "<otherservertag>: win1 win2"
-				my $msglevel = get_msglevel($rule->[4]);
-				if ($rule->[3] =~ /^(\S+): /) {
+				my $msglevel = get_msglevel($rule->[R_MSGLEVEL]);
+				if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
 					if (lc($1) eq lc($server->{tag})) {
-						$targetwin->printformat($msglevel, "ho_r_" . $rule->[0],
+						$targetwin->printformat($msglevel, "ho_r_" . $rule->[R_NAME],
 						$server->{tag}, @vars);
 					}
 				} else {
-					$targetwin->printformat($msglevel, "ho_r_" . $rule->[0],
+					$targetwin->printformat($msglevel, "ho_r_" . $rule->[R_NAME],
 						$server->{tag}, @vars);
 				}
 			}
@@ -157,7 +165,7 @@ sub event_serverevent {
 
 			# Stop matching regexps if continuematching == 0
 			# More ugly hack shit. Needs to be done decently.
-			if ($rule->[5] !~ /continuematch/) {
+			if ($rule->[R_OPTIONS] !~ /continuematch/) {
 				last;
 			}
 		}
@@ -228,7 +236,7 @@ sub add_event {
 
 	local $_ = '--------------------'; # have something to test the regexp on
 	# Test if the regular expression is valid
-	eval { /$_[1]/ };
+	eval { /$_[R_REGEXP]/ };
 	if ($@) {
 		$linenum++;
 		$@ =~ s/ at \S+ line .+?\n$//;
@@ -297,7 +305,7 @@ sub get_all_windownames {
 	my %all_windows =
 		map { $_ => 1 }
 		grep { $_ ne 'active' and $_ ne 'devnull' }
-		map { split(/\s+/, $_->[3]) }
+		map { split(/\s+/, $_->[R_WINDOWS]) }
 		@serverreplaces;
 
 	return sort keys %all_windows;
@@ -454,8 +462,8 @@ sub cmd_reformat_list {
 
 	my $numreformats = 0;
 	foreach my $rule (@serverreplaces) {
-		my $name = $rule->[0];
-		my $winname = $rule->[3];
+		my $name = $rule->[R_NAME];
+		my $winname = $rule->[R_WINDOWS];
 
 		# If there is an argument, assume it's a window name and print only
 		# the reformattings to that window name.
