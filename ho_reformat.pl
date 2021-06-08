@@ -250,7 +250,7 @@ sub download_datafile {
 
 	my $datafile_mirror = Irssi::settings_get_str('ho_rewrite_datafile_url');
 	if (not $datafile_mirror) {
-		Irssi::print("Data file $datafile not found: Install one or use:"
+		Irssi::print("Cannot download a data file: please"
 			. " /set ho_rewrite_datafile_url URL", MSGLEVEL_CLIENTNOTICE);
 		return;
 	}
@@ -263,8 +263,8 @@ sub download_datafile {
 
 	import LWP::UserAgent;
 
-	Irssi::print("Data file not found. Trying to download one from"
-		. " $datafile_mirror", MSGLEVEL_CLIENTCRAP);
+	Irssi::print("Trying to download the data file from $datafile_mirror",
+		MSGLEVEL_CLIENTCRAP);
 
 	my $useragent = LWP::UserAgent->new(
 		env_proxy			=> 1,
@@ -287,7 +287,7 @@ sub download_datafile {
 	close($fh) or die $!;
 	Irssi::print("Default data file successfully fetched and stored"
 		. " in $datafile.", MSGLEVEL_CLIENTCRAP);
-	return;
+	return 1;
 }
 
 # --------[ get_all_windownames ]---------------------------------------
@@ -453,10 +453,10 @@ sub load_datafile {
 sub cmd_reformat {
 	my ($data, $server, $item) = @_;
 
-	if ($data =~ /^(?:help|list|intro|create|inject)(?:\s|$)/i) {
+	if ($data =~ /^(?:help|list|intro|create|inject|update)(?:\s|$)/i) {
 		Irssi::command_runsub('reformat', $data, $server, $item);
 	} else {
-		Irssi::print("Use /REFORMAT [HELP|LIST|INTRO|CREATE|INJECT]")
+		Irssi::print("Use /REFORMAT [HELP|LIST|INTRO|CREATE|INJECT|UPDATE]")
 	}
 }
 
@@ -510,6 +510,9 @@ sub cmd_reformat_help {
 		return cmd_reformat_intro($data, $server, $item);
 	}
 
+	my $datafile_url = Irssi::settings_get_str('ho_rewrite_datafile_url') ||
+		'the URL in the %_ho_rewrite_datafile_url%_ parameter';
+
 	Irssi::print(
 "%CHybrid Oper Script Collection%n.\n".
 "%GServer notice reformatting script%n.\n".
@@ -525,7 +528,9 @@ sub cmd_reformat_help {
 "  - Creates all windows necessary for the output.\n".
 "%_/REFORMAT INJECT [notice]%_\n".
 "  - Fakes a message from the server to the script for testing. The given ".
-'text is prepended with %_NOTICE $nick :%_ to make it trigger the script.'.
+"text is prepended with %_NOTICE \$nick :%_ to make it trigger the script.\n".
+"%_/REFORMAT UPDATE%_\n".
+"  - Downloads the data file from $datafile_url.".
 "", MSGLEVEL_CLIENTCRAP);
 }
 
@@ -620,6 +625,24 @@ sub cmd_reformat_inject {
 		$server->{real_address}, '');
 }
 
+# --------[ cmd_reformat_update ]----------------------------------------
+# /reformat update
+# Download the data file.
+
+sub cmd_reformat_update {
+	my ($data, $server, $item) = @_;
+
+	download_datafile($datafile) or return;
+
+	undef @serverreplaces;
+	undef @themeformats;
+	add_formats_to_themearray();
+	load_datafile($datafile);
+	Irssi::theme_register(\@themeformats);
+	check_windows();
+	return;
+}
+
 # ======[ Setup ]=======================================================
 
 # --------[ Register signals ]------------------------------------------
@@ -634,6 +657,7 @@ Irssi::command_bind('reformat list', 'cmd_reformat_list');
 Irssi::command_bind('reformat intro', 'cmd_reformat_intro');
 Irssi::command_bind('reformat create', 'cmd_reformat_create');
 Irssi::command_bind('reformat inject', 'cmd_reformat_inject');
+Irssi::command_bind('reformat update', 'cmd_reformat_update');
 
 # --------[ Register settings ]-----------------------------------------
 
