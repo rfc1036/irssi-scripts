@@ -294,25 +294,13 @@ sub download_datafile {
 # because these are special windows. Returns the windows, in an array.
 
 sub get_all_windownames {
-	# Temporary hash to obtain all the window names
-	my %tmp;
+	my %all_windows =
+		map { $_ => 1 }
+		grep { $_ ne 'active' and $_ ne 'devnull' }
+		map { split(/\s+/, $_->[3]) }
+		@serverreplaces;
 
-	# Set $tmp{windowname} = 1 for each different window name.
-	# Then, the @keys of the hash contains an array of all the window
-	# names.
-	foreach my $rule (@serverreplaces) {
-		# Each window name string can consist of multiple window names,
-		# space separated.
-		my @windownames = split(/\s+/, $rule->[3]);
-
-		# Set the tmp hash value to 1 using each window name as key.
-		foreach my $windowname (@windownames) {
-			next if $windowname eq 'active' or $windowname eq 'devnull';
-			$tmp{$windowname} = 1;
-		}
-	}
-
-	return keys %tmp;
+	return sort keys %all_windows;
 }
 
 # --------[ get_missing_windownames ]-----------------------------------
@@ -320,16 +308,7 @@ sub get_all_windownames {
 # present in the irssi client.
 
 sub get_missing_windownames {
-	my @windownames = get_all_windownames();
-	my @winnotfound;
-
-	# Put the not found windows in an array.
-	foreach my $windowname (@windownames) {
-		my $win = Irssi::window_find_name($windowname);
-		push(@winnotfound, $windowname) if not defined $win;
-	}
-
-	return @winnotfound;
+	return grep { not Irssi::window_find_name($_) } get_all_windownames();
 }
 
 # --------[ check_windows ]---------------------------------------------
