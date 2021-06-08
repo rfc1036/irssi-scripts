@@ -50,11 +50,8 @@ $VERSION = '20210607';
 # The prefix that all server notices seem to have.
 my $prefix = "\\\*\\\*\\\* Notice -- ";
 
-# Irssi data dir.
-my $datadir = Irssi::get_irssi_dir();
-
 # The datafile.
-my $datafile = "ho_reformat.data";
+my $datafile = Irssi::get_irssi_dir() . '/ho_reformat.data';
 
 # Array of server notice reformatting data.
 my @serverreplaces;
@@ -653,16 +650,16 @@ Irssi::print("%CHybrid Oper Script Collection%n - %GServer Notice Reformatting%n
 add_formats_to_themearray();
 
 # If the datafile doesn't exist, download it.
-if (! -f "$datadir/$datafile") {
-	download_datafile("$datadir/$datafile");
+if (not -f $datafile) {
+	download_datafile($datafile);
 }
 
 # If the datafile exists, load it.
-if (! -f "$datadir/$datafile") {
-	Irssi::print("Data file $datadir/$datafile not found: no reformattings loaded.",
+if (not -f $datafile) {
+	Irssi::print("Data file $datafile not found: no reformattings loaded.",
 		MSGLEVEL_CLIENTNOTICE);
 } else {
-	load_datafile("$datadir/$datafile");
+	load_datafile($datafile);
 }
 
 # Register all ho formats
