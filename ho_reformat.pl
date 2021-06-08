@@ -130,7 +130,7 @@ sub event_serverevent {
 			my @windows = split(/ /, $rule->[R_WINDOWS]);
 
 			# Send the reformatted message to each window
-			foreach my $win(@windows) {
+			foreach my $win (@windows) {
 				# Ugly hack for sort of multi network support.
 				# This must be changed.
 				next if $win =~ /:$/;
@@ -138,26 +138,30 @@ sub event_serverevent {
 				# Get the target window for this message
 				# Use the active window if it's "active"
 				my $targetwin;
-				if ($win eq "active") {
+				if ($win eq 'active') {
 					$targetwin = Irssi::active_win();
 				} elsif ($multinetwork) {
 					$targetwin =
-						get_window_by_name(lc($server->{tag}) . "_" . $win) ||
-						get_window_by_name($win);
+						Irssi::window_find_name(lc($server->{tag}) . "_$win") ||
+						Irssi::window_find_name($win);
 				} else {
-					$targetwin = get_window_by_name($win);
+					$targetwin = Irssi::window_find_name($win);
 				}
+				# or else use windows 1 if a named one was not found
+				$targetwin //= Irssi::window_find_refnum(1);
 
 				# Send the reformatted message to the window
 				# But only if the target is not "<otherservertag>: win1 win2"
 				my $msglevel = get_msglevel($rule->[R_MSGLEVEL]);
 				if ($rule->[R_WINDOWS] =~ /^(\S+): /) {
 					if (lc($1) eq lc($server->{tag})) {
-						$targetwin->printformat($msglevel, "ho_r_" . $rule->[R_NAME],
-						$server->{tag}, @vars);
+						$targetwin->printformat($msglevel,
+							'ho_r_' . $rule->[R_NAME],
+							$server->{tag}, @vars);
 					}
 				} else {
-					$targetwin->printformat($msglevel, "ho_r_" . $rule->[R_NAME],
+					$targetwin->printformat($msglevel,
+						'ho_r_' . $rule->[R_NAME],
 						$server->{tag}, @vars);
 				}
 			}
@@ -176,24 +180,6 @@ sub event_serverevent {
 
 
 # ======[ Helper functions ]============================================
-
-# --------[ get_window_by_name ]----------------------------------------
-# Returns the window object given in the setting ho_win_$name.
-
-sub get_window_by_name {
-	my ($name) = @_;
-
-	# Get the reference to the window from irssi
-	my $win = Irssi::window_find_name($name);
-
-	# If not found, get the reference to window 1
-	# I'm hoping that this does ALWAYS exist :)
-	# But if not... how can this be improved so to ALWAYS return a valid
-	# window reference?
-	$win //= Irssi::window_find_refnum(1);
-
-	return $win;
-}
 
 # --------[ get_msglevel ]----------------------------------------------
 # Returns an integer message level from a string.
