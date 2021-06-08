@@ -87,12 +87,14 @@ sub event_serverevent {
 	# as well.
 	return if $hostmask;
 
+	my ($rewrite_servername, $multinetwork);
 	# transform with a regexp the server name before printing it
 	# e.g. ^([^\.]+).+
-	my $rewrite_servername;
 	if (my $re = Irssi::settings_get_str('ho_rewrite_servername')) {
 		$rewrite_servername = qr/$re/;
 	}
+	# prepend the network name to the window name
+	$multinetwork = Irssi::settings_get_bool('ho_reformat_multinetwork');
 
 	# Remove the NOTICE part from the message
 	$msg =~ s/^NOTICE \S+ ://;
@@ -138,7 +140,7 @@ sub event_serverevent {
 				my $targetwin;
 				if ($win eq "active") {
 					$targetwin = Irssi::active_win();
-				} elsif (Irssi::settings_get_bool('ho_reformat_multinetwork')) {
+				} elsif ($multinetwork) {
 					$targetwin =
 						get_window_by_name(lc($server->{tag}) . "_" . $win) ||
 						get_window_by_name($win);
