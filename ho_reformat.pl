@@ -78,14 +78,20 @@ use constant {
 sub event_serverevent {
 	my ($server, $msg, $nick, $hostmask) = @_;
 
-	# If it is not a NOTICE, we don't want to have anything to do with it.
-	# Don't mess with notices to channels or @/+ channel either -- jilles
-	return if $msg !~ /^NOTICE [^#&@+]/;
-
 	# For a server notice, the hostmask is empty.
 	# If the hostmask is set, it is not a server NOTICE, so we'll ignore it
 	# as well.
 	return if $hostmask;
+
+	# If it is not a NOTICE, we don't want to have anything to do with it.
+	# Don't mess with notices to channels or @/+ channel either -- jilles
+	return if $msg !~ /^NOTICE [^#&@+]/;
+
+	# Remove the NOTICE part from the message
+	$msg =~ s/^NOTICE \S+ ://;
+
+	# Remove the server prefix and skip the notice if it is missing
+	return if $msg !~ s/^$prefix//;
 
 	my ($rewrite_servername, $multinetwork);
 	# transform with a regexp the server name before printing it
@@ -95,12 +101,6 @@ sub event_serverevent {
 	}
 	# prepend the network name to the window name
 	$multinetwork = Irssi::settings_get_bool('ho_reformat_multinetwork');
-
-	# Remove the NOTICE part from the message
-	$msg =~ s/^NOTICE \S+ ://;
-
-	# Remove the server prefix and skip the notice if it is missing
-	return if $msg !~ s/^$prefix//;
 
 	# Check each notice reformatting regexp to see if this NOTICE matches
 	foreach my $rule (@serverreplaces) {
