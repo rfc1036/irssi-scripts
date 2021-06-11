@@ -105,7 +105,7 @@ sub event_serverevent {
 	# Check each notice reformatting regexp to see if this NOTICE matches
 	foreach my $rule (@serverreplaces) {
 		# Check if the message matches this regexp.
-		my @vars = $msg =~ /$rule->[R_REGEXP]/;
+		my @vars = $msg =~ /^$rule->[R_REGEXP]/;
 		next if not @vars;
 
 		# If the replacement is only for a certain network, ignore it if
